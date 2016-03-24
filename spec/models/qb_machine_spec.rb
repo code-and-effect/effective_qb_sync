@@ -62,25 +62,25 @@ describe Effective::QbMachine, "Authentication Behavior (op_authenticate)" do
     @qb_machine.should be_valid
   end
 
-  it "should authenticate successfully with the QB_ADMIN_PASSWORD password" do
-    result = @qb_machine.op_authenticate('username', QBSETTINGS[:quickbooks_user_password])
+  it "should authenticate successfully with the correct password" do
+    result = @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username, EffectiveQbSync.quickbooks_password)
     result.should_not eql('nvu')
   end
 
   it "should not authenticate successfully with a different password" do
-    result = @qb_machine.op_authenticate('username', '12345')
+    result = @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username, '12345')
     result.should eql('nvu')
   end
 
   it "should transition ticket to Finished state upon unsuccessful authentication" do
     @qb_machine.should_receive(:authentication_valid?).and_return(false)
-    @qb_machine.op_authenticate('username','incorrectpassword')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,'incorrectpassword')
     @qb_machine.ticket.state.should eql('Finished')
   end
 
   it "should populate last_error with authentication failure message upon unsuccessful authentication" do
     @qb_machine.should_receive(:authentication_valid?).and_return(false)
-    @qb_machine.op_authenticate('username','incorrectpassword')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,'incorrectpassword')
     @qb_machine.ticket.last_error.should_not be_blank
   end
 
@@ -88,7 +88,7 @@ describe Effective::QbMachine, "Authentication Behavior (op_authenticate)" do
     @qb_machine.should_receive(:authentication_valid?).and_return(true)
     @qb_machine.should_receive(:has_work?).and_return(true)
 
-    @qb_machine.op_authenticate('username','password')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
     @qb_machine.ticket.state.should eql('Authenticated')
   end
 
@@ -96,27 +96,27 @@ describe Effective::QbMachine, "Authentication Behavior (op_authenticate)" do
     @qb_machine.should_receive(:authentication_valid?).and_return(true)
     @qb_machine.should_receive(:has_work?).and_return(false)
 
-    @qb_machine.op_authenticate('username','password')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
     @qb_machine.ticket.state.should eql('Finished')
   end
 
   it "should return 'nvu' from op_authentication if the user login is invalid" do
     @qb_machine.should_receive(:authentication_valid?).and_return(false)
-    result = @qb_machine.op_authenticate('username','incorrectpassword')
+    result = @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,'incorrectpassword')
     result.should eql('nvu')
   end
 
   it "should return 'none' from op_authentication if the login is valid but no work to be done" do
     @qb_machine.should_receive(:authentication_valid?).and_return(true)
     @qb_machine.should_receive(:has_work?).and_return(false)
-    result = @qb_machine.op_authenticate('username','password')
+    result = @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
     result.should eql('none')
   end
 
   it "should return '' from op_authentication if the login is valid and there is work to be done" do
     @qb_machine.should_receive(:authentication_valid?).and_return(true)
     @qb_machine.should_receive(:has_work?).and_return(true)
-    result = @qb_machine.op_authenticate('username','password')
+    result = @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
     result.should eql('')
   end
 
@@ -136,7 +136,7 @@ describe Effective::QbMachine, "Authentication Behavior (op_authenticate)" do
 
   it "should not have a current request after successful authentication" do
     @qb_machine.should_receive(:authentication_valid?).and_return(true)
-    @qb_machine.op_authenticate('username','password')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
     @qb_machine.ticket.qb_request.should be_nil
   end
 
@@ -148,7 +148,7 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
     @qb_machine = Effective::QbMachine.new
     @qb_machine.stub!(:authentication_valid?).and_return(true)
     @qb_machine.stub!(:has_work?).and_return(true)
-    @qb_machine.op_authenticate('username','password')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
 
     # Here the machine should be in the Authenticated State
 
@@ -280,7 +280,7 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
     # fake out authentication to pass successfully
     @qb_machine.stub!(:authentication_valid?).and_return(true)
     @qb_machine.stub!(:has_work?).and_return(true)
-    @qb_machine.op_authenticate('username','password')
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
 
     @default_request_params = {
       :hcpresponse=>'some response',

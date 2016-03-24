@@ -10,9 +10,9 @@ module Effective
     # creates a new machine. this implicitly creates a new ticket unless one is supplied
     def initialize(ticket_id = nil)
       if ticket_id
-        @ticket = QbTicket.find_by_id(ticket_id)
+        @ticket = Effective::QbTicket.find_by_id(ticket_id)
       else
-        @ticket = QbTicket.create
+        @ticket = Effective::QbTicket.create
       end
     end
 
@@ -22,24 +22,22 @@ module Effective
     # - 'nvu' if the user login was invalid
     # - 'none' if the user login was valid but there is no work to be done
     # - '' if the user login was valid and there is work to be done
-    def op_authenticate(username,password)
+    def op_authenticate(username, password)
       return 'nvu' unless valid?
-
-      ticket_atts = {username: username}
 
       unless authentication_valid?(username, password)
         log "Authentication failed for user #{username}"
-        @ticket.update_attributes!(ticket_atts.merge(state: 'Finished', last_error: @last_log_message))
+        @ticket.update_attributes!(username: username, state: 'Finished', last_error: @last_log_message)
         return 'nvu' # not valid user
       end
 
       if has_work?
         log "Authentication successful. Reporting to QuickBooks that there is work to be done."
-        @ticket.update_attributes!(ticket_atts.merge(state: 'Authenticated'))
+        @ticket.update_attributes!(username: username, state: 'Authenticated')
         ''  # "Any other string value = use this name for company file"
       else
         log "Authentication successful, but there is no work to be done"
-        @ticket.update_attributes!(ticket_atts.merge(state: 'Finished'))
+        @ticket.update_attributes!(username: username, state: 'Finished')
         'none'
       end
     end
@@ -69,7 +67,7 @@ module Effective
       )
 
       # only process when in the Authenticated or Processing states
-      unless ['Authenticated','Processing'].include?(@ticket.state)
+      unless ['Authenticated', 'Processing'].include?(@ticket.state)
         @ticket.request_error!(@last_log_message)
         return ''
       end
@@ -254,13 +252,13 @@ module Effective
 
     # determines if this username and password is valid
     def authentication_valid?(username,password)
-      (password == QBSETTINGS[:quickbooks_user_password])
+      (username == EffectiveQbSync.quickbooks_username) && (password == EffectiveQbSync.quickbooks_password)
     end
 
     # returns how much more work is to be done. If there is no more work to be done, it will return 0, else,
     # the number of requests that need to be processed.
     def how_much_more_work
-      QbRequest.new_requests_for_unsynced_items.size
+      Effective::QbRequest.new_requests_for_unsynced_items.size
     end
 
     # returns true if there is work to be done
@@ -270,12 +268,12 @@ module Effective
 
     # creates a new request object for a unit of work to be done. returns nil if no work can be found
     def create_request
-      QbRequest.new_requests_for_unsynced_items.first
+      Effective::QbRequest.new_requests_for_unsynced_items.first
     end
 
     # returns a qb request that corresponds to the first element in the response with a requestID
     def find_outstanding_request(responseXML)
-      QbRequest.find_using_response_qbxml(responseXML)
+      Effective::QbRequest.find_using_response_qbxml(responseXML)
     end
   end
 end

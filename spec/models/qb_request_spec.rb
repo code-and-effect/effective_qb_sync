@@ -141,7 +141,7 @@ describe Effective::QbRequest, "Generating Request QbXML" do
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").count.should == 2
 
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc")[1].content.should eq(QBSETTINGS[:tax_item_name])
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc")[1].content.should eq(EffectiveQbSync.quickbooks_tax_name)
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Amount")[1].content.to_f.should eq(valid_order_item_attributes[:price] * valid_order_item_attributes[:tax_rate])
   end
 

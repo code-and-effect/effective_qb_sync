@@ -76,7 +76,7 @@ module Effective
 
     # executes an operation on a machine safely, recording the failure if one occurs
     def attempt(ticket=nil)
-      @qb_machine = QbMachine.new(ticket)
+      @qb_machine = Effective::QbMachine.new(ticket)
       begin
         return yield(@qb_machine)
       rescue

@@ -32,8 +32,8 @@ EffectiveQbSync.setup do |config|
 
   # The username / password of the Quickbooks user that should be allowed to synchronize.
   # This must match the user configured in the Quickbooks .qwc file
-  config.quickbooks_username = ''
-  config.quickbooks_password = ''
+  config.quickbooks_username = 'username'
+  config.quickbooks_password = 'password'
 
   # The Item Name/Number used for tax.  Must match the configured Quickbooks .qwc file
   config.quickbooks_tax_name = 'GST Collected'

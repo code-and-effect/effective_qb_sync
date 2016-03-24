@@ -3,10 +3,7 @@ module Effective
     belongs_to :qb_ticket
     belongs_to :order
 
-    # NOTE:
-    # Anything that is 'raise' here finds its way to qb_ticket#error!
-    # If we pass the raise string with "[Order ##{order.id}]"
-    # Our email handler will pick out the order id and assign the order accordingly
+    # NOTE: Anything that is 'raise' here finds its way to qb_ticket#error!
 
     # these are the states that signal a request is finished
     COMPLETED_STATES = ['Finished', 'Error']
@@ -37,19 +34,17 @@ module Effective
     # creates (does not persist) QbRequests for outstanding orders.  The caller may choose to
     # persist a request when that request starts communicating with QuickBooks
     def self.new_requests_for_unsynced_items
-      Order.unscoped.includes(:order_items).where(purchasable_state: Purchasable::SUCCESS).order(:id).all.to_a
-        .select { |order| order.qb_sync_status != Purchasable::QBSUCCESS }
-        .select { |order| order.order_items.all? { |order_item| order_item.quickbooks_item_name.present? } }
-        .map { |order| QbRequest.new(order: order) }
+      finished_order_ids = Effective::QbRequest.where(state: 'Finished').pluck(:order_id)
+      Effective::Order.purchased.where.not(id: finished_order_ids).map { |order| Effective::QbRequest.new(order: order) }
     end
 
     # Finds a QbRequest using response qb_xml.  If the response could not be parsed, or if there was no
     # corresponding record, nil will be returned.
     def self.find_using_response_qbxml(xml)
       return nil if xml.blank?
-      element = QbRequest.find_first_response_having_a_request_id(xml)
+      element = Effective::QbRequest.find_first_response_having_a_request_id(xml)
 
-      QbRequest.find_by_id(element.attr('requestID').to_i) if element
+      Effective::QbRequest.find_by_id(element.attr('requestID').to_i) if element
     end
 
     def has_more_work?
@@ -129,24 +124,10 @@ module Effective
 
     private
 
-    # generates the full name of the user who made the order
-    def order_full_name
-      "#{order.qb_billing_first_name} #{order.qb_billing_last_name}".strip
-    end
-
-    # generates the total price of the order item
-    def order_total_amount
-      order.sub_total
-    end
-
-    # generates the total tax for the order
-    def order_tax_amount
-      order.total_tax
-    end
-
     # ensures that the total amount includes two decimal places
-    def format_qbxml_amount(amount)
-      sprintf('%0.2f',amount)
+    def qb_amount(amount)
+      raise 'amount should be an Integer representing the price in number of cents' unless amount.kind_of?(Integer)
+      sprintf('%0.2f', (amount / 100.0))
     end
 
     def truncate(str, max_chars)
@@ -155,20 +136,20 @@ module Effective
 
     def generate_create_customer_request_xml
       Nokogiri::XML::Builder.new do |xml|
-        xml.CustomerAddRq(:requestID => self.id) {
+        xml.CustomerAddRq(requestID: id) {
           xml.CustomerAdd {
-            xml.Name(truncate(order_full_name, 41))
-            xml.FirstName(truncate(order.qb_billing_first_name, 25))
-            xml.LastName(truncate(order.qb_billing_last_name, 25))
+            xml.Name(truncate(order.billing_name, 41))
+            xml.FirstName(truncate(order.billing_name.split(' ').first, 25))
+            xml.LastName(truncate(order.billing_name.split(' ')[1..-1].join(' '), 25))
             xml.BillAddress {
-              xml.Addr1(truncate(order_full_name, 41))
-              xml.Addr2(truncate(order.qb_billing_address1, 41))
-              xml.Addr3(truncate(order.qb_billing_address2, 41))
-              xml.City(truncate(order.qb_billing_city, 31))
-              xml.PostalCode(truncate(order.qb_billing_pc, 13))
+              xml.Addr1(truncate(order.billing_name, 41))
+              xml.Addr2(truncate(order.billing_address.address1, 41))
+              xml.Addr3(truncate(order.billing_address.address2, 41))
+              xml.City(truncate(order.billing_address.city, 31))
+              xml.PostalCode(truncate(order.billing_address.postal_code, 13))
             }
-            xml.Phone(truncate(order.qb_billing_phone,21))
-            xml.Email(truncate(order.qb_billing_email,1023))
+            xml.Phone(truncate((order.user.try(:phone) || order.user.try(:cell_phone)), 21))
+            xml.Email(truncate(order.user.try(:email), 1023))
           }
         }
       end.doc.root.to_s
@@ -180,10 +161,10 @@ module Effective
 
       if '0' == queryResponse
         # the customer was created
-        log "Customer #{order_full_name} created successfully"
+        log "Customer #{order.billing_name} created successfully"
         transition_state 'OrderSync'
       else
-        raise "[Order ##{order.id}] Customer #{order_full_name} could not be created in QuickBooks: #{statusMessage}"
+        raise "[Order ##{order.id}] Customer #{order.billing_name} could not be created in QuickBooks: #{statusMessage}"
       end
 
       true # indicate success
@@ -192,7 +173,7 @@ module Effective
     def generate_customer_query_request_xml
       Nokogiri::XML::Builder.new do |xml|
         xml.CustomerQueryRq(requestID: id) {
-          xml.FullName(truncate(order_full_name,209))
+          xml.FullName(truncate(order.billing_name, 209))
         }
       end.doc.root.to_s
     end
@@ -201,10 +182,10 @@ module Effective
       queryResponse = Nokogiri::XML(xml).xpath('//CustomerQueryRs').first['statusCode']
 
       if "500" == queryResponse # the user was not found.
-        log "Customer #{order_full_name} was not found"
+        log "Customer #{order.billing_name} was not found"
         transition_state 'CreateCustomer'
       else # the user was found
-        log "Customer #{order_full_name} exists"
+        log "Customer #{order.billing_name} exists"
         transition_state 'OrderSync'
       end
 
@@ -220,9 +201,9 @@ module Effective
       Nokogiri::XML::Builder.new do |xml|
         xml.SalesReceiptAddRq(requestID: id) {
           xml.SalesReceiptAdd {
-            xml.CustomerRef { xml.FullName(truncate(order_full_name,209)) }
-            xml.TxnDate(order.created_at.strftime("%Y-%m-%d"))
-            xml.Memo("Order ##{order.id} from website")
+            xml.CustomerRef { xml.FullName(truncate(order.billing_name, 209)) }
+            xml.TxnDate(order.purchased_at.strftime("%Y-%m-%d"))
+            xml.Memo("Order ##{order.to_param} from website")
             xml.IsToBePrinted('false')
             xml.IsToBeEmailed('false')
 
@@ -230,15 +211,15 @@ module Effective
               xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(order_item.quickbooks_item_name) }
                 xml.Desc(order_item.name)
-                xml.Amount(sprintf('%0.2f',order_item.sub_total))
+                xml.Amount(qb_amount(order_item.subtotal))
               }
             end
 
             xml.SalesReceiptLineAdd {
-              if QBSETTINGS[:tax_item_name].present?
-                xml.ItemRef { xml.FullName(QBSETTINGS[:tax_item_name]) }
-                xml.Desc(QBSETTINGS[:tax_item_name])
-                xml.Amount(sprintf('%0.2f',order.total_tax))
+              if EffectiveQbSync.quickbooks_tax_name.present?
+                xml.ItemRef { xml.FullName(EffectiveQbSync.quickbooks_tax_name) }
+                xml.Desc(EffectiveQbSync.quickbooks_tax_name)
+                xml.Amount(qb_amount(order.tax))
               end
             }
           }
@@ -246,22 +227,18 @@ module Effective
       end.doc.root.to_s
     end
 
-    # Problems here perhaps
     def handle_order_sync_response_xml(xml)
       queryResponse = Nokogiri::XML(xml).xpath('//SalesReceiptAddRs').first['statusCode']
       statusMessage = Nokogiri::XML(xml).xpath('//SalesReceiptAddRs').first['statusMessage']
 
       if '0' == queryResponse
-        log "Order #{order.id} successfully syncronized"
-        order.update_attribute(:qb_sync_status, Purchasable::QBSUCCESS)
+        log "Order #{order.to_param} successfully syncronized"
         transition_state 'Finished'
       elsif '3180' == queryResponse
-        log "Order #{order.id} was not recorded by quickbooks because it was an empty transaction"
-        order.update_attribute(:qb_sync_status, Purchasable::QBSUCCESS)
+        log "Order #{order.to_param} was not recorded by quickbooks because it was an empty transaction"
         transition_state 'Finished'
       else
-        order.update_attribute(:qb_sync_status, Purchasable::QBFAILED)
-        raise "[Order ##{order.id}] could not be synchronized with QuickBooks: #{statusMessage}"
+        raise "[Order ##{order.to_param}] could not be synchronized with QuickBooks: #{statusMessage}"
       end
 
       true # indicate success

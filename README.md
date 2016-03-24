@@ -33,6 +33,39 @@ Then migrate the database:
 rake db:migrate
 ```
 
+## Setting up Quickbooks
+
+Connect the Quickbooks Web Connector to Quickbooks company file
+
+1. Open the Quickbooks Pro company file we'd like to sync with
+
+2. Click Company -> Set up Users and Passwords -> Set Up Users...
+  - Add a User "quickbookssync" with password "qbpass"
+  - Access for user: "Selected areas of Quickbooks"
+    - Sales and Accounts Receivable "Selective Access - Create transactions only"
+    - Purchases and Accounts Payable "No Access"
+    - Chequing and Credit Cards "No Access"
+    - Payroll and Employees "No Access"
+    - Sales Tax "No Access"
+    - Sensitive Accounting Activities "No Access"
+    - Sensitive Financial Reporting "No Access"
+    - Chanting or Deleting Transactions  "Yes" and "No"
+  - Finished
+  - Then make sure that whichever user you use (you CAN ignore above and use Admin...) has its password in our quickbook_settings.yml file
+
+3. Open the Quickbooks Web Connector
+  - Add an Application
+  - Select the .qwc file.  Don't store it on the desktop in a Mac Parallels, move it into any other directory
+
+
+4. Customers are added on the fly, but each item must be set up in Quickbooks before it will work on the website.
+  - To add an Item:
+    - Open Quickbooks
+    - Click the menu bar Lists -> Item List
+    - In the bottom left, Item -> New
+      - Make sure the "Item Name/Number" matches up with the purchasable.purchasable_qb_item_name value
+      - The website's price values override Quickbooks
+  - Make sure the "GST" line from Quickbooks matches our configuration file ("GST")
 
 ## License
 

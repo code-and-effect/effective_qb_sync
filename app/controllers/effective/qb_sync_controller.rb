@@ -1,11 +1,11 @@
 module Effective
   class QbSyncController < ApplicationController
-    #skip_authorization_check
-    #skip_before_filter :verify_authenticity_token
+    skip_authorization_check if defined?(CanCan)
+    skip_before_filter :verify_authenticity_token
 
     def api
       # respond successfully to a GET which some versions of the Web Connector send to verify the url
-      render(nothing: true) and return if request.get?
+      (render(nothing: true) and return) if request.get?
 
       # Examine raw post and determine which API call to process
       doc = Nokogiri::XML(request.raw_post)
@@ -15,7 +15,7 @@ module Effective
 
       case api_verb
       when 'serverVersion'
-        @version = "1.0"
+        @version = '1.0'
       when 'clientVersion'
         @version = nil
       when 'authenticate'
