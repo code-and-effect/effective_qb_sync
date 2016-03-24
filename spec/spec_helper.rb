@@ -17,6 +17,8 @@ RSpec.configure do |config|
 
   Rails.logger.level = 4    # Output only minimal stuff to test.log
 
+  config.expect_with(:rspec) { |c| c.syntax = :should }
+
   config.use_transactional_fixtures = true   # Make this false to once again use DatabaseCleaner
   config.order = 'random'
 end

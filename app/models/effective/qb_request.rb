@@ -65,7 +65,7 @@ module Effective
     # parses the response XML and processes it.
     # returns true if the  responseXML indicates success, false otherwise
     def consume_response_xml(xml)
-      update_attribute :response_qbxml, xml
+      update_attributes!(response_qbxml: xml)
       handle_response_xml(xml)
     end
 
@@ -181,7 +181,7 @@ module Effective
     def handle_customer_query_response_xml(xml)
       queryResponse = Nokogiri::XML(xml).xpath('//CustomerQueryRs').first['statusCode']
 
-      if "500" == queryResponse # the user was not found.
+      if '500' == queryResponse # the user was not found.
         log "Customer #{order.billing_name} was not found"
         transition_state 'CreateCustomer'
       else # the user was found
@@ -210,7 +210,7 @@ module Effective
             order.order_items.each do |order_item|
               xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(order_item.quickbooks_item_name) }
-                xml.Desc(order_item.name)
+                xml.Desc(order_item.title)
                 xml.Amount(qb_amount(order_item.subtotal))
               }
             end

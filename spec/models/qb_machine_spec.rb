@@ -32,9 +32,10 @@ describe Effective::QbMachine, "Basic Functionality" do
   end
 
   it "should delegate logging functionality to the ticket" do
+    before = Effective::QbLog.count
     @qb_machine = Effective::QbMachine.new
-    Effective::QbLog.any_instance.should_receive(:create)
     @qb_machine.log('Message')
+    assert Effective::QbLog.count > before
   end
 
   it "should not record an empty log message" do
@@ -146,8 +147,8 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
 
   before :each do
     @qb_machine = Effective::QbMachine.new
-    @qb_machine.stub!(:authentication_valid?).and_return(true)
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:authentication_valid?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
 
     # Here the machine should be in the Authenticated State
@@ -169,18 +170,16 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
     }
 
     # the default order item we'll be using when mocking out QbMachine#create_request
-    @order = Order.new
-    @order_item = OrderItem.new(order: @order)
+    @order = Effective::Order.new
 
     # the default request we'll use when mocking out QbMachine#create_request
-    @qb_request = Effective::QbRequest.new(:request_type=>'OrderItemSynchronization', :order_item=>@order_item, :order=>@order)
-    @qb_request.stub!(:to_qb_xml).and_return('<qbXML></qbXML>') # we are not worried about qbXML correctness here
-
-    @qb_machine.stub!(:create_request).and_return(@qb_request)
+    @qb_request = Effective::QbRequest.new(request_type: 'OrderItemSynchronization', order: @order)
+    allow(@qb_request).to receive(:to_qb_xml).and_return('<qbXML></qbXML>') # we are not worried about qbXML correctness here
+    allow(@qb_machine).to receive(:create_request).and_return(@qb_request)
   end
 
   it "should populate ticket fields [hpc_response,company_file_name, etc] when non-blank" do
-    @qb_machine.stub!(:has_work?).and_return(false)
+    allow(@qb_machine).to receive(:has_work?).and_return(false)
     @qb_machine.op_send_request_xml(@default_request_params)
 
     @qb_machine.ticket.hpc_response.should eql(@hcpresponse)
@@ -191,7 +190,7 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
   end
 
   it "should not overwrite ticket fields [hpc_response,company_file_name, etc] on subsequent request XML calls if those fields are blank" do
-    @qb_machine.stub!(:has_work?).and_return(false)
+    allow(@qb_machine).to receive(:has_work?).and_return(false)
     @qb_machine.op_send_request_xml(@default_request_params)
 
     @qb_machine.ticket.hpc_response.should eql(@hcpresponse)
@@ -210,60 +209,60 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
   end
 
   it "should transition ticket to the RequestError state if the ticket is not in the Authenticated or Processing states" do
-    @qb_machine.ticket.update_attributes! :state=>'Finished'
+    @qb_machine.ticket.update_attributes!(state: 'Finished')
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
 
   it "should return a non-empty string if there is work to be done" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
 
     result = @qb_machine.op_send_request_xml(@default_request_params)
     result.should_not be_blank
   end
 
   it "should create a QbRequest model and attach to the ticket for the corresponding qbXML" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_request.id.should_not be_nil
     @qb_machine.ticket.qb_requests.should_not be_empty
   end
 
   it "should only create one QbRequest model when sending request xml" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_machine.ticket.qb_requests.size.should eql(1)
   end
 
   it "should put the QbRequest model into the Processing state after sending work to QuickBooks" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_send_request_xml(@default_request_params)
     request = @qb_machine.ticket.qb_requests.first
     request.state.should eql('Processing')
   end
 
   it "should set the QbTicket model into the Processing state after sending work to QuickBooks" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_machine.ticket.state.should eql('Processing')
   end
 
   it "should store the qbXML into the QbRequest model" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     qbXML = @qb_machine.op_send_request_xml(@default_request_params)
     request = @qb_machine.ticket.qb_requests.first
     request.request_qbxml.should eql(qbXML)
   end
 
   it "should set the request_sent_at field in the QbRequest model" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     qbXML = @qb_machine.op_send_request_xml(@default_request_params)
     request = @qb_machine.ticket.qb_requests.first
     request.request_sent_at.should_not be_nil
   end
 
   it "should set the current request in the ticket" do
-    @qb_machine.stub!(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_machine.ticket.qb_request.should_not be_nil
     @qb_machine.ticket.qb_request.should eql(@qb_request)
@@ -278,9 +277,10 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
     @qb_machine = Effective::QbMachine.new
 
     # fake out authentication to pass successfully
-    @qb_machine.stub!(:authentication_valid?).and_return(true)
-    @qb_machine.stub!(:has_work?).and_return(true)
-    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username,EffectiveQbSync.quickbooks_password)
+    allow(@qb_machine).to receive(:authentication_valid?).and_return(true)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
+
+    @qb_machine.op_authenticate(EffectiveQbSync.quickbooks_username, EffectiveQbSync.quickbooks_password)
 
     @default_request_params = {
       :hcpresponse=>'some response',
@@ -291,15 +291,14 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
     }
 
     # the default order item we'll be using when mocking out QbMachine#create_request
-    @order = Order.new
-    @order_item = OrderItem.new
-    @qb_request = Effective::QbRequest.new(:id=>1, :request_type=>'OrderItemSynchronization', :order_item=>@order_item, :order=>@order, :state=>'CustomerQuery')
+    @order = Effective::Order.new
+    @qb_request = Effective::QbRequest.new(id: 1, request_type: 'OrderItemSynchronization', order: @order, state: 'CustomerQuery')
     @qb_request_xml = '<qbXML></qbXML>'
-    @qb_request.stub!(:to_qb_xml).and_return(@qb_request_xml) # we are not worried about qbXML correctness here
+    allow(@qb_request).to receive(:to_qb_xml).and_return(@qb_request_xml) # we are not worried about qbXML correctness here
 
     # set the machine to send some request qbXML to quickbooks
-    @qb_machine.stub!(:has_work?).and_return(true)
-    @qb_machine.stub!(:create_request).and_return(@qb_request)
+    allow(@qb_machine).to receive(:has_work?).and_return(true)
+    allow(@qb_machine).to receive(:create_request).and_return(@qb_request)
     @qb_machine.op_send_request_xml(@default_request_params)
 
     @qb_response_xml = '<qbXML><QBXMLMsgsRs><AccountQueryRs requestID="1" statusCode="0"></AccountQueryRs></QBXMLMsgsRs></qbXML>'
@@ -311,7 +310,7 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
     }
 
     # by default always report no more work to be done
-    @qb_machine.stub!(:how_much_more_work).and_return(0)
+    allow(@qb_machine).to receive(:how_much_more_work).and_return(0)
   end
 
   it "should return -1 to indicate error if the ticket state is not in the Processing state" do
@@ -339,28 +338,28 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should send the ticket into a RequestError state if there is no matching Processing request" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(nil)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(nil)
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
 
   it "should set the request state to Error if the response indicates error" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(false)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(false)
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_request.state.should eql('Error')
   end
 
   it "should set the ticket last_error field if the response indicates error" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(false)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(false)
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_machine.ticket.last_error.should_not be_blank
   end
 
   it "should set the request state to Error if there was a connection error with QuickBooks" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
 
     @params = @default_response_params
     @params[:hresult] = 'error_result'
@@ -371,8 +370,8 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should set the set the ticket state to RequestError if there was a connection error with QuickBooks" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
 
     @params = @default_response_params
     @params[:hresult] = 'error_result'
@@ -383,8 +382,8 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should set the ticket last_error field if there was a connection error with QuickBooks" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
 
     @params = @default_response_params
     @params[:hresult] = 'error_result'
@@ -395,8 +394,8 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should return -1 if there was a connection error with QuickBooks" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
 
     @params = @default_response_params
     @params[:hresult] = 'error_result'
@@ -407,8 +406,8 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should set the ticket connection_error_hresult and connection_error_message fields upon a connection error with QuickBooks" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
 
     @params = @default_response_params
     @params[:hresult] = 'error_result'
@@ -420,28 +419,35 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should return a number between 1 and 99, inclusive, if there is more work to be done" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return(true)
-    @qb_machine.stub!(:how_much_more_work).and_return(15)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:how_much_more_work).and_return(15)
+
     result = @qb_machine.op_receive_response_xml(@default_response_params)
     result.should be > 0
     result.should be < 100
   end
 
   it "should set the response_qbxml field in the QbRequest model" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:handle_response_xml).and_return(true)
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
     @qb_machine.op_receive_response_xml(@default_response_params)
+
+    binding.pry
+
     @qb_request.response_qbxml.should eql(@qb_response_xml)
   end
 
   it "should release the ticket's current request if that request signals that it is done" do
-    @qb_machine.stub!(:find_outstanding_request).and_return(@qb_request)
-    @qb_request.stub!(:consume_response_xml).and_return {
-      @qb_request.state = 'Finished'
-      # return true to indicate success
-      true
-    }
+    allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
+    @qb_request.state = 'Finished'
+    allow(@qb_request).to receive(:consume_response_xml).and_return(true)
+
+    # @qb_request.stub!(:consume_response_xml).and_return {
+    #   @qb_request.state = 'Finished'
+    #   # return true to indicate success
+    #   true
+    # }
     @qb_machine.op_receive_response_xml(@default_response_params)
 
     # it should be nil because the request is in a finished state
@@ -457,7 +463,7 @@ describe Effective::QbMachine, "Receiving notification that the QBWC cannot conn
     @qb_machine = Effective::QbMachine.new
     @hresult = 'hresult'
     @message = 'message'
-    @result = @qb_machine.op_connection_error(@hresult,@message)
+    @result = @qb_machine.op_connection_error(@hresult, @message)
   end
 
   it "should always return 'done'" do

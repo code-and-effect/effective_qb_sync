@@ -16,7 +16,8 @@ describe Effective::QbTicket do
 
   it "should report an error on state" do
     @qb_ticket.state = nil
-    @qb_ticket.should have(1).error_on(:state)
+    @qb_ticket.save
+    @qb_ticket.errors[:state].present?.should eq true
   end
 
   it "should start out in the Ready state" do
@@ -31,7 +32,7 @@ describe Effective::QbTicket do
 
   it "should be able to contain other QbRequests" do
     @qb_ticket.save
-    @qb_request = Effective::QbRequest.new(:order_item => OrderItem.new, :order => Order.new, :request_type=>'OrderItemSynchronization')
+    @qb_request = Effective::QbRequest.new(order: Effective::Order.new, request_type: 'OrderItemSynchronization')
     @qb_ticket.qb_requests.push @qb_request
     @qb_ticket.save!
 
@@ -41,7 +42,7 @@ describe Effective::QbTicket do
 
   it "should return a recorded log message when #log is called" do
     @qb_ticket.save
-    log = @qb_ticket.log("This is a log message")
+    log = @qb_ticket.log('This is a log message')
     log.should_not be_nil
     log.should_not be_new_record # make sure it's saved
   end
@@ -50,7 +51,7 @@ describe Effective::QbTicket do
     @qb_ticket.save
 
     @before = Effective::QbLog.count
-    @qb_ticket.log("This is a message")
+    @qb_ticket.log('This is a message')
     @after = Effective::QbLog.count
 
     @before.should eql(0)
