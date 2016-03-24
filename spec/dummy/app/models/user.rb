@@ -8,4 +8,8 @@ class User < ActiveRecord::Base
   def to_s
     email
   end
+
+  def phone
+    '555-555-5555'
+  end
 end

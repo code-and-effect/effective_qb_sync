@@ -433,8 +433,6 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
     allow(@qb_request).to receive(:consume_response_xml).and_return(true)
     @qb_machine.op_receive_response_xml(@default_response_params)
 
-    binding.pry
-
     @qb_request.response_qbxml.should eql(@qb_response_xml)
   end
 

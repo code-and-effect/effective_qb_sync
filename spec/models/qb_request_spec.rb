@@ -2,49 +2,12 @@ require 'spec_helper'
 
 module Effective::QbRequestSpecHelper
 
-  def valid_user_attributes
-    {
-      :email => "someone@something.com",
-      :password => '1234567890',
-      :password_confirmation => '1234567890'
-    }
-  end
-
-  def valid_order_attributes
-    {
-      # These are hardcoded in the orders now instead of as attributes
-      :purchasable_state => Purchasable::SUCCESS,
-      :cardholder => "Cardholder Name",
-      :purchased_at => Time.now,
-      :card_type => "V",
-      :card_num => "4242***4242",
-      :exp_month => nil,
-      :exp_year => "1212",
-      :message => "APPROVED"
-    }
-  end
-
-  def valid_order_item_attributes
-    {
-      :quantity=>1,
-      :price=>100.00,
-      :tax_rate=>0.05,
-      :qb_item_name=>'Some Item',
-      :name => 'Order Name'
-    }
-  end
-
-  def failed_order_attributes
-    valid_order_attributes.with(:status=>Purchasable::FAILED)
-  end
-
   # valid attributes for qb requests
   def valid_request_attributes
     {
       :state=>'Processing',
       :qb_ticket => Effective::QbTicket.new,
-      :order_item => OrderItem.new,
-      :order => Order.new,
+      :order => Effective::Order.new,
       :request_type=>'OrderItemSynchronization'
     }
   end
@@ -57,13 +20,8 @@ describe Effective::QbRequest, "Generating Request QbXML" do
 
   before :each do
     # let's generate an order that the request will need to use.
-    @user = User.new(valid_user_attributes)
-    @user.save!
-
-    @order = Order.new(valid_order_attributes)
-    @order.user = @user
-    @order.order_items.build(valid_order_item_attributes)
-    @order.save!
+    @order = FactoryGirl.create(:purchased_order)
+    @user = @order.user
 
     @qb_request = Effective::QbRequest.new(valid_request_attributes)
     @qb_request.order = @order
@@ -102,11 +60,11 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     @doc.at_xpath("//CustomerAddRq//CustomerAdd//LastName").content.should eq(@user.last_name)
 
     @doc.xpath("//CustomerAddRq//CustomerAdd//BillAddress").present?.should == true
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//Addr2").content.should eq(@user.address1)
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//City").content.should eq(@user.city)
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//PostalCode").content.should eq(@user.postal_code)
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//Addr2").content.should eq(@order.billing_address.address1)
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//City").content.should eq(@order.billing_address.city)
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//PostalCode").content.should eq(@order.billing_address.postal_code)
 
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//Phone").content.should eq(@user.phone_home)
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//Phone").content.should eq(@user.phone)
     @doc.at_xpath("//CustomerAddRq//CustomerAdd//Email").content.should eq(@user.email)
 
   end
@@ -133,16 +91,16 @@ describe Effective::QbRequest, "Generating Request QbXML" do
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd").present?.should == true
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef").present?.should == true
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef//FullName").content.should eq(valid_order_item_attributes[:qb_item_name])
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Desc").content.should eq(valid_order_item_attributes[:name])
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Amount").content.to_f.should eq(valid_order_item_attributes[:price])
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef//FullName").content.should eq(@order.order_items.first.qb_item_name)
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Desc").content.should eq(@order.order_items.first.title)
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Amount").content.to_f.should eq(@order.order_items.first.subtotal)
 
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd").count.should == 2
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd").count.should == @order.order_items.length + 1
 
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").count.should == 2
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").count.should == @order.order_items.length + 1
 
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc")[1].content.should eq(EffectiveQbSync.quickbooks_tax_name)
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Amount")[1].content.to_f.should eq(valid_order_item_attributes[:price] * valid_order_item_attributes[:tax_rate])
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").last.content.should eq(EffectiveQbSync.quickbooks_tax_name)
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Amount").last.content.to_f.should eq(@order.tax)
   end
 
   it "should raise an exception if there is no qb_item_name on the order_item" do
@@ -157,9 +115,7 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     @qb_request.order = nil
     Effective::QbRequest::PROCESSING_STATES.each do |state|
       @qb_request.state = state
-      lambda {
-        @qb_request.generate_request_xml
-      }.should raise_error
+      (@qb_request.generate_request_xml rescue :failed).should eq :failed
     end
   end
 
@@ -188,16 +144,16 @@ describe Effective::QbRequest, "Generating Request QbXML" do
   it "should be able to find the first response with a requestID" do
     @xml = "<root><Something request=\"0\"></Something><AThing requestID=\"500\"></AThing><AThing requestID=\"300\"></AThing></root>"
 
-    Effective::QbRequest.find_first_response_having_a_request_id(@xml).attr('requestID').should eq("500")
+    Effective::QbRequest.find_first_response_having_a_request_id(@xml).attr('requestID').should eq('500')
 
   end
 
 
-#  it "handle_create_customer_response_xml should return true if passed a valid status code" do
-#      customer_response_xml = "<root><CustomerAddRs statusCode=\"0\"></CustomerAddRs></root>"
-#
-#      @qb_request.handle_create_customer_response_xml(customer_response_xml).should eq(true)
-#  end
+ it "handle_create_customer_response_xml should return true if passed a valid status code" do
+     customer_response_xml = "<root><CustomerAddRs statusCode=\"0\"></CustomerAddRs></root>"
+
+     @qb_request.handle_create_customer_response_xml(customer_response_xml).should eq(true)
+ end
 
 #  it "should raise an error if malformed xml is passed" do
 #      @customer_response_xml = "<root><noxml></noxml></root>"
@@ -215,13 +171,8 @@ describe Effective::QbRequest do
     @qbxml_success = File.read(Rails.root.to_s + '/../fixtures/qbxml_response_success.xml')
 
     # let's generate an order that the request will need to use.
-    @user = User.new(valid_user_attributes)
-    @user.save!
-
-    @order = Order.new(valid_order_attributes)
-    @order.user = @user
-    @order.order_items.build(valid_order_item_attributes)
-    @order.save!
+    @order = FactoryGirl.create(:purchased_order)
+    @user = @order.user
 
     @qb_request = Effective::QbRequest.new(valid_request_attributes)
     @qb_request.order = @order
@@ -234,22 +185,16 @@ describe Effective::QbRequest do
 
   it "should show an error on missing QbTicket" do
     @qb_request.qb_ticket = nil
-    @qb_request.should have(1).error_on(:qb_ticket)
+    @qb_request.save
+    @qb_request.errors[:qb_ticket].present?.should eq true
   end
-
- # it "should show an error on an invalid request_type" do
- #   @attributes = valid_request_attributes
- #   @attributes[:state] = 'InvalidRequestType'
-
- #   @qb_request.attributes = @attributes
- #   @qb_request.should have(1).error_on(:request_type)
- # end
 
   it "should show an error if request type is OrderItemSynchronization and there is no order" do
     @qb_request.attributes = valid_request_attributes
     @qb_request.request_type = 'OrderItemSynchronization'
     @qb_request.order = nil
-    @qb_request.should have(1).error_on(:order)
+    @qb_request.save
+    @qb_request.errors[:order].present?.should eq true
   end
 
   it "should return Processing when state is empty" do
@@ -262,18 +207,19 @@ describe Effective::QbRequest do
     @attributes[:state] = 'InvalidState'
 
     @qb_request.attributes = @attributes
-    @qb_request.should have(1).error_on(:state)
+    @qb_request.save
+    @qb_request.errors[:state].present?.should eq true
   end
 
   it "should return a found record using response qb xml" do
-    Effective::QbRequest.stub!(:find_by_id).with(34).and_return(@qb_request)
+    allow(Effective::QbRequest).to receive(:find_by_id).and_return(@qb_request)
     request = Effective::QbRequest.find_using_response_qbxml(@qbxml_success)
     request.should eql(@qb_request)
   end
 
   it "should return nil if it cannot find the corresponding request using the response qb xml" do
     response_qbxml = '<QBXML><QBXMLMsgsRs></QBXMLMsgsRs></QBXML>'
-    Effective::QbRequest.stub!(:find_by_id).with(34).and_return(@qb_request)
+    allow(Effective::QbRequest).to receive(:find_by_id).and_return(@qb_request)
     request = Effective::QbRequest.find_using_response_qbxml(response_qbxml)
     request.should be_nil
   end
@@ -281,63 +227,17 @@ describe Effective::QbRequest do
 end
 
 
-module Effective::SyncOrderItemSpecHelper
+describe Effective::QbRequest, "Working with Synchronizing Orders" do
 
-  def valid_user_attributes
-    {
-      :email => "someone@something.com",
-      :password => '1234567890',
-      :password_confirmation => '1234567890'
-    }
-  end
-
-  def valid_order_attributes
-    {
-      # These are hardcoded in the orders now instead of as attributes
-      :purchasable_state => Purchasable::SUCCESS,
-      :cardholder => "Cardholder Name",
-      :purchased_at => Time.now,
-      :card_type => "V",
-      :card_num => "4242***4242",
-      :exp_month => nil,
-      :exp_year => "1212",
-      :message => "APPROVED"
-    }
-  end
-
-  def valid_order_item_attributes(order)
-    {
-      :qb_item_name=>'Web Sale',
-      :price=>100,
-      :quantity=>1,
-      :tax_rate=>2.50,
-      :order=>order
-    }
-  end
-
-end
-
-describe Effective::QbRequest, "Working with Synchronizing OrderItems" do
-
-  include Effective::SyncOrderItemSpecHelper
+  include Effective::QbRequestSpecHelper
 
   # we will create an order with five order items attached to it
   before :each do
     @qb_machine = Effective::QbMachine.new
 
     # let's generate an order that the request will need to use.
-    @user = User.new(valid_user_attributes)
-    @user.save!
-
-    @order = Order.new(valid_order_attributes)
-
-    @order.user = @user
-    5.times do
-      @order.order_items.build(valid_order_item_attributes(@order))
-    end
-    @order.save!
-    @order.mark_successful
-
+    @order = FactoryGirl.create(:purchased_order)
+    @user = @order.user
   end
 
   it "Order should be valid" do
@@ -345,11 +245,11 @@ describe Effective::QbRequest, "Working with Synchronizing OrderItems" do
   end
 
   it "test should verify that the order items are attached to the order" do
-    Order.first.order_items.size.should eql(5)
+    (Effective::Order.first.order_items.size > 1).should eq true
   end
 
   it "should return an empty array if there are no order items to be synchronized" do
-    Order.delete_all
+    Effective::Order.delete_all
     requests = Effective::QbRequest.new_requests_for_unsynced_items
     requests.should_not be_nil
     requests.size.should eql(0)
@@ -361,24 +261,24 @@ describe Effective::QbRequest, "Working with Synchronizing OrderItems" do
   end
 
   it "should not return a request for an OrderItem if its Order has a 'Failed' status" do
-    @order.purchasable_state = Purchasable::FAILED
-    @order.save!
+    @order.purchase_state = 'declined'
+    @order.save(validate: false)
 
     # return 0 requests because they all belong to the same Failed order
     Effective::QbRequest.new_requests_for_unsynced_items.size.should eql(0)
   end
 
-  # it "should not return a request for an Order if a request has already been created for it" do
-  #   requests = Effective::QbRequest.new_requests_for_unsynced_items
-  #   request = requests.first
+  it "should not return a request for an Order if a request has already been created for it" do
+    requests = Effective::QbRequest.new_requests_for_unsynced_items
+    request = requests.first
 
-  #   # save and persist this request
-  #   request.qb_ticket = @qb_machine.ticket
-  #   request.save!
+    # save and persist this request
+    request.qb_ticket = @qb_machine.ticket
+    request.save!
 
-  #   new_requests = Effective::QbRequest.new_requests_for_unsynced_items
-  #   new_requests.size.should eql(requests.size-1)
-  # end
+    new_requests = Effective::QbRequest.new_requests_for_unsynced_items
+    new_requests.size.should eql(requests.size-1)
+  end
 
   it "should return an array of type QbRequest" do
     Effective::QbRequest.new_requests_for_unsynced_items.each do |req|
@@ -400,12 +300,12 @@ describe Effective::QbRequest, "Working with Synchronizing OrderItems" do
     end
   end
 
-  it "should not return any OrderItem that has no QuickBooks item name" do
-    requests = Effective::QbRequest.new_requests_for_unsynced_items
-    OrderItem.update_all(:qb_item_name => '')
-    new_requests = Effective::QbRequest.new_requests_for_unsynced_items
+  # it "should not return any OrderItem that has no QuickBooks item name" do
+  #   requests = Effective::QbRequest.new_requests_for_unsynced_items
+  #   Effective::OrderItem.update_all(:qb_item_name => '')
+  #   new_requests = Effective::QbRequest.new_requests_for_unsynced_items
 
-    requests.size.should_not eq new_requests.size
-  end
+  #   requests.size.should_not eq new_requests.size
+  # end
 
 end
