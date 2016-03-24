@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<QBXML>
+  <QBXMLMsgsRs>
+    <ReceivePaymentAddRs requestID="34" statusCode="3140" statusSeverity="Error" statusMessage="Something went wrong!"/>
+  </QBXMLMsgsRs>
+</QBXML>

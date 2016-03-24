@@ -1,0 +1,68 @@
+class CreateEffectiveQbSync < ActiveRecord::Migration
+  def self.up
+    create_table <%= @qb_requests_table_name %> do |t|
+      t.integer   :order_id
+      t.integer   :qb_ticket_id
+
+      t.string    :state, default: 'Processing'
+      t.text      :error
+
+      t.string    :request_type
+      t.text      :request_qbxml
+      t.text      :response_qbxml
+
+      t.datetime  :request_sent_at
+      t.datetime  :response_received_at
+
+      t.timestamps
+    end
+    add_index <%= @qb_requests_table_name %>, :order_id
+
+    create_table <%= @qb_tickets_table_name %> do |t|
+      t.integer   :qb_request_id
+
+      t.string    :username
+      t.text      :hpc_response
+      t.string    :company_file_name
+      t.string    :country
+      t.string    :qbxml_major_version
+      t.string    :qbxml_minor_version
+
+      t.string    :state, default: 'Ready'
+      t.integer   :percent, default: 0
+
+      t.text      :connection_error_hresult
+      t.text      :connection_error_message
+      t.text      :last_error
+
+      t.timestamps
+    end
+    add_index <%= @qb_tickets_table_name %>, :qb_request_id
+
+    create_table <%= @qb_logs_table_name %> do |t|
+      t.integer   :qb_ticket_id
+
+      t.text      :message
+
+      t.timestamps
+    end
+    add_index <%= @qb_logs_table_name %>, :qb_ticket_id
+
+    create_table <%= @qb_order_items_table_name %> do |t|
+      t.integer    :order_item_id
+
+      t.string     :name
+
+      t.timestamps
+    end
+    add_index <%= @qb_order_items_table_name %>, :order_item_id
+
+  end
+
+  def self.down
+    drop_table <%= @qb_requests_table_name %>
+    drop_table <%= @qb_tickets_table_name %>
+    drop_table <%= @qb_logs_table_name %>
+    drop_table <%= @qb_order_items_table_name %>
+  end
+end
