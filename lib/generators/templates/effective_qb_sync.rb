@@ -35,7 +35,7 @@ EffectiveQbSync.setup do |config|
   config.quickbooks_username = ''
   config.quickbooks_password = ''
 
-  # The Item Name/Number used for tax.  Must match the configured Quickbooks .qwc file
+  # The Item Name/Number used for tax.  Must match the configured Quickbooks .qwc file.
   config.quickbooks_tax_name = 'GST Collected'
 
 end

@@ -4,6 +4,11 @@ Synchronize [effective_orders](https://github.com/code-and-effect/effective_orde
 
 ## Getting Started
 
+Make sure [effective_orders](https://github.com/code-and-effect/effective_orders) is installed.
+
+Ensure all your `acts_as_purchasable` objects respond to `qb_item_name`.
+
+
 Add to your Gemfile:
 
 ```ruby
