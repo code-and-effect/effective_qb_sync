@@ -166,6 +166,8 @@ module Effective
         return -1
       end
 
+      request.update_attributes!(response_qbxml: responseXML) # This was changed for effective_qb_sync
+
       # the request has processed the response XML. if it does not have any more work to do, then detach it
 
       if request.has_more_work?

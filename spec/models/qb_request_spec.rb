@@ -88,8 +88,8 @@ describe Effective::QbRequest, "Generating Request QbXML" do
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//TxnDate").present?.should == true
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//Memo").present?.should == true
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//IsToBePrinted").content.should == "false"
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//IsToBeEmailed").content.should == "false"
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//IsToBePrinted").content.should == 'false'
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//IsToBeEmailed").content.should == 'false'
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd").present?.should == true
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef").present?.should == true
@@ -110,7 +110,7 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     allow(@qb_request.order.order_items.first).to receive(:qb_item_name).and_return(nil)
 
     # This should raise an error
-    lambda { @qb_request.generate_request_xml}.should raise_error
+    (@qb_request.generate_request_xml rescue :error).should eq :error
   end
 
   it "should raise an exception if there is no attached order to the request" do
@@ -157,12 +157,12 @@ describe Effective::QbRequest, "Generating Request QbXML" do
      @qb_request.handle_create_customer_response_xml(customer_response_xml).should eq(true)
  end
 
-#  it "should raise an error if malformed xml is passed" do
-#      @customer_response_xml = "<root><noxml></noxml></root>"
+  it "should raise an error if malformed xml is passed" do
+    @customer_response_xml = "<root><noxml></noxml></root>"
 
-#      @qb_request.handle_create_customer_response_xml(@customer_response_xml)
-      #lambda { @qb_request.handle_create_customer_response_xml(@customer_response_xml) }.should raise_error
-#  end
+    (@qb_request.handle_create_customer_response_xml(@customer_response_xml) rescue :error).should eq :error
+  end
+
 end
 
 describe Effective::QbRequest do
@@ -225,9 +225,7 @@ describe Effective::QbRequest do
     request = Effective::QbRequest.find_using_response_qbxml(response_qbxml)
     request.should be_nil
   end
-
 end
-
 
 describe Effective::QbRequest, "Working with Synchronizing Orders" do
 
@@ -277,6 +275,7 @@ describe Effective::QbRequest, "Working with Synchronizing Orders" do
     # save and persist this request
     request.qb_ticket = @qb_machine.ticket
     request.save!
+    request.transition_state('Finished')  # This was changed for effective_qb_sync
 
     new_requests = Effective::QbRequest.new_requests_for_unsynced_items
     new_requests.size.should eql(requests.size-1)

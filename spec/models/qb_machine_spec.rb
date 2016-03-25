@@ -431,6 +431,9 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   it "should set the response_qbxml field in the QbRequest model" do
     allow(@qb_machine).to receive(:find_outstanding_request).and_return(@qb_request)
     allow(@qb_request).to receive(:consume_response_xml).and_return(true)
+
+    @qb_request.request_type = nil
+
     @qb_machine.op_receive_response_xml(@default_response_params)
 
     @qb_request.response_qbxml.should eql(@qb_response_xml)
