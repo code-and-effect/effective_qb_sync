@@ -304,6 +304,18 @@ describe Effective::QbRequest, "Working with Synchronizing Orders" do
     end
   end
 
+  it 'should create one qb_order_item for each order_item' do
+    Effective::QbRequest.new_requests_for_unsynced_items.each do |req|
+      req.qb_ticket = Effective::QbTicket.new()
+      req.transition_to_finished
+
+      # One QbOrderItem per OrderItem
+      Effective::QbOrderItem.count.should eq req.order.order_items.length
+
+      Effective::OrderItem.all.each { |oi| oi.qb_order_item.present?.should eq true }
+    end
+  end
+
   # it "should not return any OrderItem that has no QuickBooks item name" do
   #   requests = Effective::QbRequest.new_requests_for_unsynced_items
   #   Effective::OrderItem.update_all(:qb_item_name => '')

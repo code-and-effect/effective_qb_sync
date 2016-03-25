@@ -35,7 +35,8 @@ module Effective
     # persist a request when that request starts communicating with QuickBooks
     def self.new_requests_for_unsynced_items
       finished_order_ids = Effective::QbRequest.where(state: 'Finished').pluck(:order_id)
-      Effective::Order.purchased.where.not(id: finished_order_ids).map { |order| Effective::QbRequest.new(order: order) }
+      Effective::Order.purchased.includes(order_items: [:purchasable, :qb_order_item])
+        .where.not(id: finished_order_ids).map { |order| Effective::QbRequest.new(order: order) }
     end
 
     # Finds a QbRequest using response qb_xml.  If the response could not be parsed, or if there was no
@@ -120,6 +121,16 @@ module Effective
       old_state = self.state
       update_attributes!(state: state)
       log "Transitioned request state from [#{old_state}] to [#{state}]"
+    end
+
+    def transition_to_finished
+      # We create one QbOrderItem for each OrderItem here.
+      order.order_items.each do |order_item|
+        order_item.qb_item_name
+        order_item.qb_order_item.save
+      end
+
+      transition_state('Finished')
     end
 
     # This should be private too, but test needs it
@@ -236,10 +247,10 @@ module Effective
 
       if '0' == queryResponse
         log "Order #{order.to_param} successfully syncronized"
-        transition_state 'Finished'
+        transition_to_finished
       elsif '3180' == queryResponse
         log "Order #{order.to_param} was not recorded by quickbooks because it was an empty transaction"
-        transition_state 'Finished'
+        transition_to_finished
       else
         raise "[Order ##{order.to_param}] could not be synchronized with QuickBooks: #{statusMessage}"
       end
