@@ -41,7 +41,8 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     @doc = Nokogiri::XML(qb_xml)
 
     @doc.xpath("//CustomerQueryRq").first["requestID"].should == (@qb_request.id.to_s)
-    @doc.at_xpath("//CustomerQueryRq//FullName").content.should eq(@user.full_name)
+
+    @doc.at_xpath("//CustomerQueryRq//FullName").content.should eq(@order.billing_name)
   end
 
   it "should generate valid qb_xml for the CreateCustomer state" do
@@ -55,9 +56,10 @@ describe Effective::QbRequest, "Generating Request QbXML" do
 
     @doc.xpath("//CustomerAddRq//CustomerAdd").present?.should == true
 
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//Name").content.should eq(@user.full_name)
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//FirstName").content.should eq(@user.first_name)
-    @doc.at_xpath("//CustomerAddRq//CustomerAdd//LastName").content.should eq(@user.last_name)
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//Name").content.should eq(@order.billing_name)
+
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//FirstName").content.present?.should eq true
+    @doc.at_xpath("//CustomerAddRq//CustomerAdd//LastName").content.present?.should eq true
 
     @doc.xpath("//CustomerAddRq//CustomerAdd//BillAddress").present?.should == true
     @doc.at_xpath("//CustomerAddRq//CustomerAdd//BillAddress//Addr2").content.should eq(@order.billing_address.address1)
@@ -82,7 +84,7 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd").present?.should == true
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//CustomerRef").present?.should == true
 
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//CustomerRef//FullName").content.should eq(@user.full_name)
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//CustomerRef//FullName").content.should eq(@order.billing_name)
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//TxnDate").present?.should == true
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//Memo").present?.should == true
@@ -93,19 +95,19 @@ describe Effective::QbRequest, "Generating Request QbXML" do
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef").present?.should == true
     @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//ItemRef//FullName").content.should eq(@order.order_items.first.qb_item_name)
     @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Desc").content.should eq(@order.order_items.first.title)
-    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Amount").content.to_f.should eq(@order.order_items.first.subtotal)
+    @doc.at_xpath("//SalesReceiptAddRq//SalesReceiptAdd//Amount").content.to_f.should eq(@order.order_items.first.subtotal / 100.0)
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd").count.should == @order.order_items.length + 1
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").count.should == @order.order_items.length + 1
 
     @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Desc").last.content.should eq(EffectiveQbSync.quickbooks_tax_name)
-    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Amount").last.content.to_f.should eq(@order.tax)
+    @doc.xpath("//SalesReceiptAddRq//SalesReceiptAdd//SalesReceiptLineAdd//Amount").last.content.to_f.should eq(@order.tax / 100.0)
   end
 
   it "should raise an exception if there is no qb_item_name on the order_item" do
     @qb_request.state = 'OrderSync'
-    @qb_request.order.order_items.first.qb_item_name = nil
+    allow(@qb_request.order.order_items.first).to receive(:qb_item_name).and_return(nil)
 
     # This should raise an error
     lambda { @qb_request.generate_request_xml}.should raise_error
@@ -294,9 +296,12 @@ describe Effective::QbRequest, "Working with Synchronizing Orders" do
 
   it "should return each OrderItem having the correct fields filled in" do
     Effective::QbRequest.new_requests_for_unsynced_items.each do |req|
-      req.order.order_items.first.qb_item_name.should eql('Web Sale')
-      req.order.order_items.first.price.should eql(100)
-      req.order.order_items.first.quantity.should eql(1)
+      order_item = req.order.order_items.first
+
+      order_item.purchasable.kind_of?(Product).should eq true
+      order_item.qb_item_name.should eq 'Product'
+      order_item.price.should eq 1000
+      order_item.quantity.should eq 1
     end
   end
 

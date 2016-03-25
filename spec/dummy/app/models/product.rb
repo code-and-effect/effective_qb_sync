@@ -6,4 +6,9 @@ class Product < ActiveRecord::Base
 
   after_decline do |order, order_item|
   end
+
+  def qb_item_name
+    'Product'
+  end
+
 end

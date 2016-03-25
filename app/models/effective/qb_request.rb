@@ -99,8 +99,8 @@ module Effective
       # safety checks to make sure we are linked in to the order
       raise 'Missing Order' unless order
 
-      if order.order_items.any? { |order_item| order_item.quickbooks_item_name.blank? }
-        raise 'Missing QuickBooks Item Name on Order Item'
+      if order.order_items.any? { |order_item| order_item.qb_item_name.blank? }
+        raise 'expected .qb_item_name() to be present on Effective::OrderItem'
       end
 
       case self.state
@@ -120,6 +120,22 @@ module Effective
       old_state = self.state
       update_attributes!(state: state)
       log "Transitioned request state from [#{old_state}] to [#{state}]"
+    end
+
+    # This should be private too, but test needs it
+    def handle_create_customer_response_xml(xml)
+      queryResponse = Nokogiri::XML(xml).xpath('//CustomerAddRs').first['statusCode']
+      statusMessage = Nokogiri::XML(xml).xpath('//CustomerAddRs').first['statusMessage']
+
+      if '0' == queryResponse
+        # the customer was created
+        log "Customer #{order.billing_name} created successfully"
+        transition_state 'OrderSync'
+      else
+        raise "[Order ##{order.id}] Customer #{order.billing_name} could not be created in QuickBooks: #{statusMessage}"
+      end
+
+      true # indicate success
     end
 
     private
@@ -155,20 +171,7 @@ module Effective
       end.doc.root.to_s
     end
 
-    def handle_create_customer_response_xml(xml)
-      queryResponse = Nokogiri::XML(xml).xpath('//CustomerAddRs').first['statusCode']
-      statusMessage = Nokogiri::XML(xml).xpath('//CustomerAddRs').first['statusMessage']
 
-      if '0' == queryResponse
-        # the customer was created
-        log "Customer #{order.billing_name} created successfully"
-        transition_state 'OrderSync'
-      else
-        raise "[Order ##{order.id}] Customer #{order.billing_name} could not be created in QuickBooks: #{statusMessage}"
-      end
-
-      true # indicate success
-    end
 
     def generate_customer_query_request_xml
       Nokogiri::XML::Builder.new do |xml|
@@ -209,7 +212,7 @@ module Effective
 
             order.order_items.each do |order_item|
               xml.SalesReceiptLineAdd {
-                xml.ItemRef { xml.FullName(order_item.quickbooks_item_name) }
+                xml.ItemRef { xml.FullName(order_item.qb_item_name) }
                 xml.Desc(order_item.title)
                 xml.Amount(qb_amount(order_item.subtotal))
               }

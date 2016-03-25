@@ -6,4 +6,8 @@ class ProductWithFloatPrice < ActiveRecord::Base
 
   after_decline do |order, order_item|
   end
+
+  def qb_item_name
+    'ProductWithFloatPrice'
+  end
 end

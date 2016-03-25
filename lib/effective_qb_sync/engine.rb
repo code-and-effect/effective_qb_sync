@@ -22,5 +22,18 @@ module EffectiveQbSync
       end
     end
 
+    # Include acts_as_addressable concern and allow any ActiveRecord object to call it
+    initializer 'effective_qb_sync.active_record' do |app|
+      ActiveSupport.on_load :active_record do
+        Effective::OrderItem.class_eval do
+          has_one :qb_order_item
+
+          def qb_item_name
+            qb_order_item.try(:name) || purchasable.try(:qb_item_name)
+          end
+        end
+      end
+    end
+
   end
 end

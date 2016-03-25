@@ -3,8 +3,6 @@ class User < ActiveRecord::Base
 
   acts_as_addressable :billing, :shipping
 
-  attr_accessor :first_name, :last_name
-
   def to_s
     email
   end
@@ -12,4 +10,5 @@ class User < ActiveRecord::Base
   def phone
     '555-555-5555'
   end
+
 end

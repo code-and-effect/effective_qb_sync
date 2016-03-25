@@ -6,5 +6,7 @@ module Effective
     #  name                   :string
     #  timestamps
     # end
+
+    validates :order_item, presence: true
   end
 end
