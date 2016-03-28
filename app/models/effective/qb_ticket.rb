@@ -2,6 +2,7 @@ module Effective
   class QbTicket < ActiveRecord::Base
     belongs_to :qb_request # the current request
     has_many :qb_requests
+    has_many :orders, through: :qb_requests
     has_many :qb_logs
 
     STATES = ['Ready', 'Authenticated', 'Processing', 'Finished', 'ConnectionError', 'RequestError']

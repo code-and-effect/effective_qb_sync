@@ -8,5 +8,6 @@ module Effective
     # end
 
     validates :order_item, presence: true
+    validates :name, presence: true
   end
 end
