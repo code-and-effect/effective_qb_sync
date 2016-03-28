@@ -24,17 +24,18 @@
     %li Sales and Accounts Receivable "Selective Access - Create transactions only"
     %li Purchases and Accounts Payable "No Access"
     %li Chequing and Credit Cards "No Access"
+    %li Time Tracking "No Access"
     %li Payroll and Employees "No Access"
     %li Sales Tax "No Access"
     %li Sensitive Accounting Activities "No Access"
     %li Sensitive Financial Reporting "No Access"
-    %li Chanting or Deleting Transactions "Yes" and "No"
+    %li Changing or Deleting Transactions "Yes" and "No"
     %li Finished
 
 %h3 2. Create all Quickbooks items
 
 %p
-  Each sellable (acts_as_purchasable) object on the website has a qb_item_name that must match an existing Quickbooks Item.
+  Each acts_as_purchasable object on the website has a qb_item_name that must match an existing Quickbooks Item.
   %br
   The website's price will override any Quickbooks default item prices.
 
@@ -48,17 +49,43 @@
   %li In the bottom left, Item -> New
   %li Make sure the "Item Name/Number" matches with above.
 
-%h3 3. Check the Quickbooks Tax Item
+%h3 3. Configure the Quickbooks Sales Tax Behaviour
 
-%p The Quickbooks tax Item Name must match the website's configuration file.
+%p Quickbooks sales tax can be configured in one of two ways:
 
 %ul
   %li
+    Sales tax should be added by Quickbooks
+    %ul
+      %li Click Edit -> Preferences -> Sales Tax -> Company Preferences
+      %li Do you charge sales tax? Yes
+      %li Add sales tax item...
+      %li Set the config/initializers/effective_qb_sync.rb "quickbooks_tax_name" to an empty string
+      %li When synchronizing, the website will not add in the tax amount
+      %li Quickbooks will consider the order subtotal and add the appropriate tax amount
+
+  %li
+    Sales tax should be added by the website
+    %ul
+      %li Click Edit -> Preferences -> Sales Tax -> Company Preferences
+      %li Do you charge sales tax? No
+      %li Add a regular Quickbooks Item (as per 2. Create all Quickbooks items instructions, above)
+      %li
+        - if EffectiveQbSync.quickbooks_tax_name.present?
+          Ensure that the Item Name in Quickbooks is
+          %strong #{EffectiveQbSync.quickbooks_tax_name}
+        - else
+          (developer) Add a quickbooks_tax_name to the config/initializers/effective_qb_sync.rb file
+      %li The website will add an additional line item with the tax amount.
+
+%p
+  Currently, the website is configured such that:
+  %strong
     - if EffectiveQbSync.quickbooks_tax_name.present?
-      Ensure that the tax Item Name in Quickbooks is
-      %strong #{EffectiveQbSync.quickbooks_tax_name}
+      Sales tax should be added by the website
     - else
-      (developer) Add a quickbooks_tax_name to the config/initializers/effective_qb_sync.rb file
+      Sales tax should be added by Quickbooks
+
 
 %h3 4. Configure the Quickbooks Web Connector
 
@@ -70,10 +97,13 @@
   %li
     Open the Quickbooks Web Connector program from the Start menu
     %ul
-      %li Click Add an Application
+      %li Click Add an application
       %li Select the .qwc file just downloaded
+      %li Click OK to add the new web service
+      %li Select any of the 'Yes' options (Yes, always; allow access even if Quickbooks is not running is prefered) and Continue...
+      %li Done
       %li
-        If the .qwc file doesn't add properly, you can edit the .qwc file with notepad, and check the following:
+        If the .qwc file doesn't add properly, you can edit the .qwc file with wordpad, and check the following:
         %ul
           %li The AppID must be unique between all other .qwc files
           %li
@@ -86,7 +116,7 @@
           %li The AppSupport url doesn't matter
           %li The UserName must be present and match an existing user
           %li The OwnerID and FileID values must also be unique between all other .qwc files
-      %li Enter the username and password as above
+      %li Enter the password as above and Save it
 
 
 %h3 5. Start the Synchronization
@@ -95,7 +125,9 @@
 
 %ul
   %li Open the Quickbooks Web Connector
-  %li Click Sync
+  %li Check the far left checkbox next to the new application
+  %li Click Update Selected to do the sync
+  %li (optional) or enable Auto-Run
   %li
     If any synchronization errors occur,
     %strong= EffectiveQbSync.error_email || EffectiveOrders.mailer[:admin_email]

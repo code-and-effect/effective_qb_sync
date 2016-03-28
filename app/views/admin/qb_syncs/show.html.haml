@@ -7,31 +7,18 @@
         %th= key.titleize
         %td= value
 
-%h2 Requests
+%hr
 
 %table.table
   %thead
     %tr
-      %th Created
-      %th State
-  %tbody
-    - @qb_ticket.qb_requests.each do |qb_request|
-      %tr
-        %td= qb_request.created_at
-        %td= qb_request.state
-
-%h2 Log
-
-%table.table
-  %thead
-    %tr
-      %th Date
+      %th Time
       %th Message
   %tbody
     - @qb_ticket.qb_logs.each do |qb_log|
       %tr
-        %td= qb_log.created_at
-        %td= qb_log.state
+        %th= qb_log.created_at.strftime("%H:%M:%S").html_safe
+        %td= qb_log.message
 
 
 

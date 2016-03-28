@@ -8,13 +8,13 @@ if defined?(EffectiveDatatables)
           table_column :created_at
           table_column :state, filter: { values: QbTicket::STATES }
 
-          array_column :num_requests do |qb_ticket|
+          array_column :num_orders, visible: false do |qb_ticket|
             qb_ticket.qb_requests.length
           end
 
           array_column :orders do |qb_ticket|
             qb_ticket.qb_requests.select { |qb_request| qb_request.order.present? }
-              .map { |qb_request| link_to "Order ##{qb_request.order.to_param}", effective_orders.admin_order_path(qb_request.order) }
+              .map { |qb_request| link_to "##{qb_request.order.to_param}", effective_orders.admin_order_path(qb_request.order) }
               .join('<br>').html_safe
           end
 

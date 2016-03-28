@@ -229,13 +229,13 @@ module Effective
               }
             end
 
-            xml.SalesReceiptLineAdd {
-              if EffectiveQbSync.quickbooks_tax_name.present?
+            if EffectiveQbSync.quickbooks_tax_name.present?
+              xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(EffectiveQbSync.quickbooks_tax_name) }
                 xml.Desc(EffectiveQbSync.quickbooks_tax_name)
                 xml.Amount(qb_amount(order.tax))
-              end
-            }
+              }
+            end
           }
         }
       end.doc.root.to_s

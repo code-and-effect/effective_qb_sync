@@ -3,6 +3,18 @@
 %p.text-right.effective-qb-sync-page-action
   = link_to 'Quickbooks Setup Instructions', effective_qb_sync.instructions_admin_qb_syncs_path, class: 'btn btn-primary'
 
+%hr
+- unsynced = Effective::QbRequest.new_requests_for_unsynced_items.length
+
+- if unsynced == 0
+  %p All orders have been synchronized with Quickbooks.
+- elsif unsynced == 1
+  %p There is 1 order ready to be synchronized with Quickbooks.
+- else
+  %p There are #{unsynced} orders ready to be synchronized with Quickbooks.
+
+%hr
+
 - if @datatable.nil?
   %p Please install #{link_to 'effective_datatables', 'https://github.com/code-and-effect/effective_datatables'} to see this page.
 - elsif @datatable.present?
