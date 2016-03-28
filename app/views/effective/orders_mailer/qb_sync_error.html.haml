@@ -1,0 +1,54 @@
+!!!
+%html
+  %head
+    %meta{:content => 'text/html; charset=UTF-8', 'http-equiv' => "Content-Type"}
+  %body
+
+    %p
+      %strong An error occurred while synchronizing QuickBooks:
+    %p= @error
+
+    - if @order.present?
+      %p
+        %strong= "Order ##{@order.to_param}"
+        %br
+        = @order.created_at
+        %br
+        = @order.billing_name
+        %br
+        - @order.order_items.each do |oi|
+          = "#{oi.title} (#{oi.try(:qb_item_name)})"
+          %br
+
+    %p
+      %strong Resolution steps:
+
+    %ol
+      - if @error.include?('invalid reference to QuickBooks Item')
+        %li Confirm the QuickBooks Item Names for this Order within QuickBooks
+        %li Visit the website administration
+        %li Visit the Orders screen, find the order, and click the 'QB Item Names'
+        %li Update each order item with a correct Item Name
+        %li Update the Product (Event, Membership Type, Product, etc.) with the correct Item Name
+        %li Re-run the QuickBooks Sync
+
+      - elsif @error.include?('the list element is already in use')
+        %li This customer could not be created because they share a name with an existing Item Name. This could be as a Vendor, Product, or Service.
+        %li Search QuickBooks for the non-customer item name and rename it. Ex: rename "John Doe" to "John Doe (Vendor)"
+        %li Re-run the QuickBooks Sync
+
+      - elsif @error.include?('cannot use the same tax item')
+        %li QuickBooks has been configured to automatically add GST for this item, but the already contains a GST line item
+        %li Edit the item in QuickBooks and uncheck the inclusion of GST
+        %li Re-run the QuickBooks Sync
+
+      - else
+        %li This is an error without a predefined resolution. Please wait for AgileStyle to follow up with you.
+
+-# Common error messages for refernece:
+
+-# An unexpected error occurred: Order 31 could not be synchronized with QuickBooks: There is an  "qbitemname" in the SalesReceipt line. QuickBooks error message: Invalid argument. The specified record does not exist in the list.
+
+-# An unexpected error occurred: Order 190 could not be synchronized with QuickBooks: There is an invalid reference to QuickBooks Item "GST (1) On Sales" in the SalesReceipt line. QuickBooks error message: You cannot use the same tax item in both the line items and the txn tax.
+
+-# An unexpected error occurred: Customer Peter Jenkins could not be created in QuickBooks: The name "Peter Jenkins" of the list element is already in use.

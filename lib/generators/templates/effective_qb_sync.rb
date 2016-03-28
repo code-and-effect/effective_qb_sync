@@ -38,4 +38,9 @@ EffectiveQbSync.setup do |config|
   # The Item Name/Number used for tax.  Must match the configured Quickbooks .qwc file.
   config.quickbooks_tax_name = 'GST Collected'
 
+  # If a synchronization errors occurs, send an email with steps to fix the error, to this address
+  # Uses effective_orders mailer layout and settings
+  # Leave nil to use EffectiveOrders.mailer[:admin_email] value, or provide any valid email here
+  config.error_email = nil
+
 end

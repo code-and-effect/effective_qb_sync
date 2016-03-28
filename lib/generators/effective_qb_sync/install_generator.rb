@@ -19,6 +19,16 @@ module EffectiveQbSync
         template "effective_qb_sync.rb", "config/initializers/effective_qb_sync.rb"
       end
 
+      def copy_mailer_preview
+        mailer_preview_path = (Rails.application.config.action_mailer.preview_path rescue nil)
+
+        if mailer_preview_path.present?
+          template 'effective_qb_sync_mailer_preview.rb', File.join(mailer_preview_path, 'effective_qb_sync_mailer_preview.rb')
+        else
+          puts "couldn't find action_mailer.preview_path.  Skipping effective_qb_sync_mailer_preview."
+        end
+      end
+
       def create_migration_file
         @qb_requests_table_name = ':' + EffectiveQbSync.qb_requests_table_name.to_s
         @qb_tickets_table_name = ':' + EffectiveQbSync.qb_tickets_table_name.to_s

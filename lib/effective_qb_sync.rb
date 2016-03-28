@@ -17,6 +17,8 @@ module EffectiveQbSync
   mattr_accessor :quickbooks_password
   mattr_accessor :quickbooks_tax_name
 
+  mattr_accessor :error_email
+
   mattr_accessor :layout
   mattr_accessor :simple_form_options
 
