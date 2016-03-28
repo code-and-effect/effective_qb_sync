@@ -41,11 +41,11 @@ module Effective
 
     # This is the entry point for a standard error.
     def error!(error, atts={})
-      binding.pry
       Effective::OrdersMailer.order_error(
-        order: qb_request.order,
+        order: qb_request.try(:order),
+        error: error,
         to: EffectiveQbSync.error_email,
-        subject: "Quickbooks failed to synchronize order ##{qb_request.order.to_param}",
+        subject: "Quickbooks failed to synchronize order ##{qb_request.try(:order).try(:to_param) || 'unknown'}",
         template: 'qb_sync_error'
       ).try(:deliver_now).try(:deliver)
 

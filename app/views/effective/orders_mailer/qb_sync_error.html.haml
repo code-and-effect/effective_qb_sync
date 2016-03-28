@@ -6,7 +6,9 @@
 
     %p
       %strong An error occurred while synchronizing QuickBooks:
-    %p= @error
+
+    - if @error.present?
+      %p= @error
 
     - if @order.present?
       %p

@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/code-and-effect/effective_orders
-  revision: 9b88f8e8db285adcfc82ccbaf3c64d051ca32c95
+  revision: 9065f334213d5af0c2198cfe0b5caeb0b90e058d
   branch: 2.0
   specs:
     effective_orders (1.8.1)
