@@ -1,0 +1,12 @@
+%h2.effective-qb-sync-page-title= (@page_title || 'Quickbooks Synchronizations')
+
+%p.text-right.effective-qb-sync-page-action
+  = link_to 'Setup Instructions', effective_orders.new_admin_order_path, class: 'btn btn-primary'
+
+- if @datatable.nil?
+  %p Please install #{link_to 'effective_datatables', 'https://github.com/code-and-effect/effective_datatables'} to see this page.
+- elsif @datatable.present?
+  = render_datatable @datatable
+- else
+  %p There are no Quickbook Syncs present
+

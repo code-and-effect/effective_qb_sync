@@ -20,7 +20,7 @@ module EffectiveQbSync
   mattr_accessor :error_email
 
   mattr_accessor :layout
-  mattr_accessor :simple_form_options
+  mattr_accessor :admin_simple_form_options
 
   def self.setup
     yield self

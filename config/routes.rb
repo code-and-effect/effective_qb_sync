@@ -4,10 +4,10 @@ end
 
 EffectiveQbSync::Engine.routes.draw do
   scope module: 'effective' do
-
     match 'quickbooks/api', to: 'qb_sync#api', as: 'qb_sync', via: :all
+  end
 
-    namespace :admin do
-    end
+  namespace :admin do
+    resources :qb_syncs, only: [:index, :show]
   end
 end

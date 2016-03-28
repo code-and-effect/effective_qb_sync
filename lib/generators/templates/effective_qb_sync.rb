@@ -28,6 +28,13 @@ EffectiveQbSync.setup do |config|
   # config.authorization_method = false
   config.authorization_method = Proc.new { |controller, action, resource| true }
 
+  # All EffectiveQbSync controllers will use this layout
+  config.layout = 'application'
+
+  # SimpleForm Options
+  # This Hash of options will be passed into any admin facing simple_form_for() calls
+  config.admin_simple_form_options = {} # For the /admin/qb_tickets form
+
   # Quickbooks Company File Settings
 
   # The username / password of the Quickbooks user that should be allowed to synchronize.
