@@ -1,0 +1,12 @@
+<QBWCXML>
+   <AppName><%= Rails.application.class.parent_name.upcase %> Web Connector</AppName>
+   <AppID>{<%= SecureRandom.uuid.upcase %>}</AppID>
+   <AppURL><%= effective_qb_sync.qb_sync_url(protocol: 'https') %></AppURL>
+   <AppDescription><%= Rails.application.class.parent_name.upcase %> EffectiveOrders to Quickbooks Web Connector</AppDescription>
+   <AppSupport><%= effective_qb_sync.instructions_admin_qb_syncs_url(protocol: 'https') %></AppSupport>
+   <UserName><%= EffectiveQbSync.quickbooks_username || 'MISSING' %></UserName>
+   <OwnerID>{<%= SecureRandom.uuid.upcase %>}</OwnerID>
+   <FileID>{<%= SecureRandom.uuid.upcase %>}</FileID>
+   <QBType>QBFS</QBType>
+   <Style>DocWrapped</Style>
+</QBWCXML>

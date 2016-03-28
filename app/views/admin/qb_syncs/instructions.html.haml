@@ -1,0 +1,104 @@
+%h2.effective-qb-sync-page-title= @page_title
+
+%h3 1. Create a Quickbooks user for sync
+
+%p The Quickbooks web connector requires a user be created for synchronization.
+
+%ul
+  %li
+    Open the Quickbooks Pro company file that will be synchronized with the website
+  %li
+    Click Company -> Set up Users and Passwords -> Set Up Users...
+    - if EffectiveQbSync.quickbooks_username.present? && EffectiveQbSync.quickbooks_password.present?
+      %li
+        Add a Quickbooks user with username
+        %strong= EffectiveQbSync.quickbooks_username
+        and password
+        %strong= EffectiveQbSync.quickbooks_password
+    - else
+      %li
+        (developer) Add a quickbooks_username and quickbooks_password to the config/initializers/effective_qb_sync.rb file
+        %ul
+          %li Add a Quickbooks user with that same username and password
+    %li Access for user: "Selected areas of Quickbooks"
+    %li Sales and Accounts Receivable "Selective Access - Create transactions only"
+    %li Purchases and Accounts Payable "No Access"
+    %li Chequing and Credit Cards "No Access"
+    %li Payroll and Employees "No Access"
+    %li Sales Tax "No Access"
+    %li Sensitive Accounting Activities "No Access"
+    %li Sensitive Financial Reporting "No Access"
+    %li Chanting or Deleting Transactions "Yes" and "No"
+    %li Finished
+
+%h3 2. Create all Quickbooks items
+
+%p
+  Each sellable (acts_as_purchasable) object on the website has a qb_item_name that must match an existing Quickbooks Item.
+  %br
+  The website's price will override any Quickbooks default item prices.
+
+%p Make sure a Quickbooks Item exists for each of the following:
+= render partial: '/admin/qb_syncs/qb_item_names'
+
+%p To add an Item in Quickbooks:
+
+%ul
+  %li Click the menu bar Lists -> Item List
+  %li In the bottom left, Item -> New
+  %li Make sure the "Item Name/Number" matches with above.
+
+%h3 3. Check the Quickbooks Tax Item
+
+%p The Quickbooks tax Item Name must match the website's configuration file.
+
+%ul
+  %li
+    - if EffectiveQbSync.quickbooks_tax_name.present?
+      Ensure that the tax Item Name in Quickbooks is
+      %strong #{EffectiveQbSync.quickbooks_tax_name}
+    - else
+      (developer) Add a quickbooks_tax_name to the config/initializers/effective_qb_sync.rb file
+
+%h3 4. Configure the Quickbooks Web Connector
+
+%p Now that the Quickbooks company file has been configured, it is time to set up the Quickbooks Web Connector program.
+
+%ul
+  %li
+    Download the #{link_to 'quickbooks web connector .qwc file', (effective_qb_sync.qwc_admin_qb_syncs_path)} and put it somewhere safe
+  %li
+    Open the Quickbooks Web Connector program from the Start menu
+    %ul
+      %li Click Add an Application
+      %li Select the .qwc file just downloaded
+      %li
+        If the .qwc file doesn't add properly, you can edit the .qwc file with notepad, and check the following:
+        %ul
+          %li The AppID must be unique between all other .qwc files
+          %li
+            The AppURL must be an
+            %strong https://
+            url that ends with
+            %strong= effective_qb_sync.qb_sync_path
+            such as
+            %strong https://myapp.heroku.com#{effective_qb_sync.qb_sync_path}
+          %li The AppSupport url doesn't matter
+          %li The UserName must be present and match an existing user
+          %li The OwnerID and FileID values must also be unique between all other .qwc files
+      %li Enter the username and password as above
+
+
+%h3 5. Start the Synchronization
+
+%p Everything is ready to go. Good luck with the first synchronization!
+
+%ul
+  %li Open the Quickbooks Web Connector
+  %li Click Sync
+  %li
+    If any synchronization errors occur,
+    %strong= EffectiveQbSync.error_email || EffectiveOrders.mailer[:admin_email]
+    will receive an email with instructions on how to fix the error
+
+

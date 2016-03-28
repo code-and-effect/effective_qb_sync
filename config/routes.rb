@@ -8,6 +8,9 @@ EffectiveQbSync::Engine.routes.draw do
   end
 
   namespace :admin do
-    resources :qb_syncs, only: [:index, :show]
+    resources :qb_syncs, only: [:index, :show] do
+      get :instructions, on: :collection
+      get :qwc, on: :collection
+    end
   end
 end

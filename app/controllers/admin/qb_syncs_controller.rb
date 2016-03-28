@@ -18,5 +18,19 @@ module Admin
       EffectiveQbSync.authorized?(self, :show, @qb_ticket)
     end
 
+    def instructions
+      EffectiveQbSync.authorized?(self, :admin, :effective_qb_sync)
+      @page_title = 'Quickbooks Setup Instructions'
+    end
+
+    def qwc
+      EffectiveQbSync.authorized?(self, :admin, :effective_qb_sync)
+      @filename = Rails.application.class.parent_name.downcase + '.qwc'
+
+      response.headers['Content-Disposition'] = "attachment; filename=\"#{@filename}\""
+
+      render '/effective/qb_web_connector/quickbooks.qwc', layout: false
+    end
+
   end
 end
