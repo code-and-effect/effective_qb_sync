@@ -30,12 +30,6 @@ module Effective
 
     validates :state, inclusion: { in: STATES }
 
-    # attr_accessible :username, :company_file_name, :country, :qbxml_major_version,
-    #   :qbxml_minor_version, :state, :percent, :hpc_response, :connection_error_hresult,
-    #   :connection_error_message, :last_error, :qb_request
-
-    # This is something busted with the communication between the website and Quickbooks itself
-    # In practice, we have not been seeing these errors at all
     def request_error!(error, atts={})
       self.error!(error, atts.reverse_merge({state: 'RequestError'}))
     end

@@ -24,9 +24,6 @@ module Effective
     #   timestamps
     # end
 
-    # attr_accessible :request_qbxml, :response_qbxml, :request_sent_at, :response_received_at,
-    #   :state, :error, :order, :qb_ticket, :order_id
-
     validates :state, inclusion: { in: COMPLETED_STATES + PROCESSING_STATES }
     validates :qb_ticket, presence: true
     validates :order, presence: true
@@ -181,8 +178,6 @@ module Effective
         }
       end.doc.root.to_s
     end
-
-
 
     def generate_customer_query_request_xml
       Nokogiri::XML::Builder.new do |xml|

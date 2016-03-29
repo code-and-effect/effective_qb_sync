@@ -1,4 +1,4 @@
-# This is a form object base class for the /admin/qb_syncs/:id "update qb item names" action
+# This is a form object for the admin_qb_syncs#update action
 
 module Effective
   class QbOrderItemsForm
@@ -12,7 +12,7 @@ module Effective
     end
 
     def qb_order_items
-      @qb_order_items||= orders.flat_map { |order| order.order_items.map { |oi| oi.qb_item_name; oi.qb_order_item } }
+      @qb_order_items ||= orders.flat_map { |order| order.order_items.map { |oi| oi.qb_item_name; oi.qb_order_item } }
     end
 
     # This is required by SimpleForm and Rails for non-ActiveRecord nested attributes

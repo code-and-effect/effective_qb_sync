@@ -9,6 +9,5 @@ module Effective
 
     validates :qb_ticket, presence: true
     validates :message, presence: true
-
   end
 end
