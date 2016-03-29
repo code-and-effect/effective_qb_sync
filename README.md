@@ -12,7 +12,6 @@ Ensure all your `acts_as_purchasable` objects respond to `qb_item_name`.
 Add to your Gemfile:
 
 ```ruby
-gem 'effective_orders'
 gem 'effective_qb_sync'
 ```
 
@@ -38,39 +37,37 @@ Then migrate the database:
 rake db:migrate
 ```
 
+### Admin Screen
+
+To use the Admin screen, please also install the effective_datatables gem:
+
+```ruby
+gem 'effective_datatables'
+```
+
+Then visit:
+
+```ruby
+link_to 'Quickbooks', effective_qb_sync.admin_qb_syncs_path   # /admin/qb_syncs
+```
+
+### Permissions
+
+The Quickbooks synchronization controller does not require a logged in user, or any other rails permissions.
+
+The sync itself checks that the Quickbooks user performing the sync has a username/password that matches the values in the config/initializers/effective_qb_sync.rb file.
+
+For the admin screen, a logged in user is required (devise) and the user should be able to (CanCan):
+
+```ruby
+can :admin, :effective_qb_sync
+```
+
+Devise is a required dependency, but CanCan is not.  Please see the authorization_method in the initializer.
+
 ## Setting up Quickbooks
 
-Connect the Quickbooks Web Connector to Quickbooks company file
-
-1. Open the Quickbooks Pro company file we'd like to sync with
-
-2. Click Company -> Set up Users and Passwords -> Set Up Users...
-  - Add a User "quickbookssync" with password "qbpass"
-  - Access for user: "Selected areas of Quickbooks"
-    - Sales and Accounts Receivable "Selective Access - Create transactions only"
-    - Purchases and Accounts Payable "No Access"
-    - Chequing and Credit Cards "No Access"
-    - Payroll and Employees "No Access"
-    - Sales Tax "No Access"
-    - Sensitive Accounting Activities "No Access"
-    - Sensitive Financial Reporting "No Access"
-    - Chanting or Deleting Transactions  "Yes" and "No"
-  - Finished
-  - Then make sure that whichever user you use (you CAN ignore above and use Admin...) has its password in our quickbook_settings.yml file
-
-3. Open the Quickbooks Web Connector
-  - Add an Application
-  - Select the .qwc file.  Don't store it on the desktop in a Mac Parallels, move it into any other directory
-
-
-4. Customers are added on the fly, but each item must be set up in Quickbooks before it will work on the website.
-  - To add an Item:
-    - Open Quickbooks
-    - Click the menu bar Lists -> Item List
-    - In the bottom left, Item -> New
-      - Make sure the "Item Name/Number" matches up with the purchasable.purchasable_qb_item_name value
-      - The website's price values override Quickbooks
-  - Make sure the "GST" line from Quickbooks matches our configuration file ("GST")
+Once the gem is installed, visit the /admin/qb_syncs/instructions page for setup instructions.
 
 ## License
 
@@ -78,17 +75,13 @@ MIT License.  Copyright [Code and Effect Inc.](http://www.codeandeffect.com/)
 
 Code and Effect is the product arm of [AgileStyle](http://www.agilestyle.com/), an Edmonton-based shop that specializes in building custom web applications with Ruby on Rails.
 
-
 ## Testing
-
-The test suite for this gem is mostly complete.
 
 Run tests by:
 
 ```ruby
 rspec
 ```
-
 
 ## Contributing
 
