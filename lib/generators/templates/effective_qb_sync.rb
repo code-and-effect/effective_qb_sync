@@ -33,7 +33,7 @@ EffectiveQbSync.setup do |config|
 
   # SimpleForm Options
   # This Hash of options will be passed into any admin facing simple_form_for() calls
-  config.admin_simple_form_options = {} # For the /admin/qb_tickets form
+  config.admin_simple_form_options = {} # For the /admin/qb_syncs form
 
   # Quickbooks Company File Settings
 
@@ -42,7 +42,7 @@ EffectiveQbSync.setup do |config|
   config.quickbooks_username = ''
   config.quickbooks_password = ''
 
-  # Quickbooks sales tax can behave in two ways:
+  # Sales tax can be added to an order in two ways:
   # 1. Sales tax should be added by Quickbooks
   #    - Set below: config.quickbooks_tax_name = ''
   #    - In Quickbooks: Edit -> Preferences -> Sales Tax -> Company Preferences -> Do you charge sales tax? Yes
@@ -50,11 +50,12 @@ EffectiveQbSync.setup do |config|
   #    - Set below: config.quickbooks_tax_name = 'GST Collected'
   #    - In Quickbooks: Edit -> Preferences -> Sales Tax -> Company Preferences -> Do you charge sales tax? No
   #    - In Quickbooks: Add a regular Quickbooks Item matching the config.quickbooks_tax_name
+  # See /admin/qb_syncs/instructions for more information.
   config.quickbooks_tax_name = ''
 
   # If a synchronization errors occurs, send an email with steps to fix the error, to this address
   # Uses effective_orders mailer layout and settings
-  # Leave nil to use EffectiveOrders.mailer[:admin_email] value, or provide any valid email here
+  # Leave nil to use EffectiveOrders.mailer[:admin_email] value, or provide a to email address here
   config.error_email = nil
 
 end

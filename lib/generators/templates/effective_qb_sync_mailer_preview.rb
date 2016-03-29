@@ -1,6 +1,6 @@
 # In Rails 4.1 and above, visit:
 # http://localhost:3000/rails/mailers
-# to see a preview of the following 3 emails:
+# to see a preview of the following emails:
 
 class EffectiveQbSyncMailerPreview < ActionMailer::Preview
   # All order_errors are called from QbTicket.error!
@@ -11,11 +11,11 @@ class EffectiveQbSyncMailerPreview < ActionMailer::Preview
   end
 
   def error_invalid_reference_to_item
-    order_error('There is an invalid reference to QuickBooks Item "GST (1) On Sales" in the SalesReceipt line.')
+    order_error('There is an invalid reference to QuickBooks Item "Tax On Sale" in the SalesReceipt line.')
   end
 
   def error_element_already_in_use
-    order_error('The name "Peter Jenkins" of the list element is already in use.')
+    order_error('The name "Peter Pan" of the list element is already in use.')
   end
 
   def error_unknown
