@@ -37,10 +37,6 @@ module EffectiveQbSync
 
         migration_template '../../../db/migrate/01_create_effective_qb_sync.rb.erb', 'db/migrate/create_effective_qb_sync.rb'
       end
-
-      def show_readme
-        readme "README" if behavior == :invoke
-      end
     end
   end
 end
