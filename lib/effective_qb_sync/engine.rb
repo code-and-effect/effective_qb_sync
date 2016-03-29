@@ -14,10 +14,10 @@ module EffectiveQbSync
       if Rails.env.development?
         Rails.application.eager_load!
 
-        invalids = ActsAsPurchasable.descendants.reject { |klass| klass.new().try(:qb_item_name).present? }
+        invalids = ActsAsPurchasable.descendants.reject { |klass| (klass.new().try(:qb_item_name).present? rescue false) }
 
         if invalids.present?
-          raise "expected acts_as_purchasable objects #{invalids.map(&:to_s).to_sentence} .qb_item_name() to be present."
+          puts "WARNING: (effective_qb_sync) expected acts_as_purchasable objects #{invalids.map(&:to_s).to_sentence} .qb_item_name() to be present."
         end
       end
     end
