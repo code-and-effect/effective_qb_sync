@@ -2,4 +2,4 @@ source "http://rubygems.org"
 
 gemspec
 
-gem 'effective_orders', git: 'https://github.com/code-and-effect/effective_orders', branch: '2.0'
+gem 'effective_orders', '~> 2.0.0'

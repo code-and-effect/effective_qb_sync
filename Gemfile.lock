@@ -1,25 +1,10 @@
-GIT
-  remote: https://github.com/code-and-effect/effective_orders
-  revision: 9065f334213d5af0c2198cfe0b5caeb0b90e058d
-  branch: 2.0
-  specs:
-    effective_orders (1.8.1)
-      coffee-rails
-      devise
-      effective_addresses (>= 1.4.0)
-      haml-rails
-      jquery-rails
-      rails (>= 3.2.0)
-      sass-rails
-      simple_form
-
 PATH
   remote: .
   specs:
     effective_qb_sync (0.0.1)
       coffee-rails
       devise
-      effective_orders (>= 1.4.0)
+      effective_orders (~> 2.0.0)
       haml-rails
       jquery-rails
       nokogiri
@@ -100,6 +85,15 @@ GEM
       coffee-rails
       haml-rails
       rails (>= 3.2.0)
+    effective_orders (2.0.0)
+      coffee-rails
+      devise
+      effective_addresses (>= 1.4.0)
+      haml-rails
+      jquery-rails
+      rails (>= 3.2.0)
+      sass-rails
+      simple_form
     erubis (2.7.0)
     execjs (2.6.0)
     factory_girl (4.5.0)
@@ -232,7 +226,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  effective_orders!
+  effective_orders (~> 2.0.0)
   effective_qb_sync!
   factory_girl_rails
   pry
