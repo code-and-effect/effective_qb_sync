@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    effective_qb_sync (0.0.1)
+    effective_qb_sync (1.0.1)
       coffee-rails
       devise
       effective_orders (~> 2.0.0)
       haml-rails
       jquery-rails
       nokogiri
-      rails (>= 3.2.0)
+      rails (>= 4.2.0)
       sass-rails
       simple_form
 
