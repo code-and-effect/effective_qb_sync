@@ -6,7 +6,7 @@ module EffectiveQbSync
 
     # Set up our default configuration options.
     initializer "effective_qb_sync.defaults", before: :load_config_initializers do |app|
-      eval File.read("#{config.root}/lib/generators/templates/effective_qb_sync.rb")
+      eval File.read("#{config.root}/config/effective_qb_sync.rb")
     end
 
     # Ensure every acts_as_purchasable object responds to qb_item_name
