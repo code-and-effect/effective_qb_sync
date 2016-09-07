@@ -69,6 +69,20 @@ Devise is a required dependency, but CanCan is not.  Please see the authorizatio
 
 Once the gem is installed, visit the /admin/qb_syncs/instructions page for setup instructions.
 
+## Rake Tasks
+
+### Overwrite quickbooks item names
+
+When an order is purchased, the `qb_item_name()` of each `acts_as_purchasable` object is saved to the database.
+
+If you change the output of `acts_as_purchasable`.`qb_item_name`, any existing quickbooks item names will remain unchanged.
+
+Run this script to overwrite all saved quickbooks item names with the current `acts_as_purchasable`.`qb_item_name`.
+
+```ruby
+rake effective_qb_sync:overwrite_qb_item_names
+```
+
 ## License
 
 MIT License.  Copyright [Code and Effect Inc.](http://www.codeandeffect.com/)
