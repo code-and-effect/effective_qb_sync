@@ -35,7 +35,7 @@ module EffectiveQbSync
         @qb_logs_table_name = ':' + EffectiveQbSync.qb_logs_table_name.to_s
         @qb_order_items_table_name = ':' + EffectiveQbSync.qb_order_items_table_name.to_s
 
-        migration_template '../../../db/migrate/01_create_effective_qb_sync.rb.erb', 'db/migrate/create_effective_qb_sync.rb'
+        migration_template ('../' * 3) + 'db/migrate/01_create_effective_qb_sync.rb.erb', 'db/migrate/create_effective_qb_sync.rb'
       end
     end
   end

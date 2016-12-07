@@ -1,5 +1,3 @@
-# EffectiveQbSync Rails Engine
-
 EffectiveQbSync.setup do |config|
   # Configure Database Tables
   config.qb_requests_table_name = :qb_requests

@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency "sass-rails"
   s.add_dependency "simple_form"
   s.add_dependency "effective_orders", '>= 2.0.0'
+  s.add_dependency "effective_datatables", '>= 2.0.0'
 
   s.add_development_dependency "factory_girl_rails"
   s.add_development_dependency "rspec-rails"

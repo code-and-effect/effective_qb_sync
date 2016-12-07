@@ -6,7 +6,7 @@ module Admin
     layout (EffectiveQbSync.layout.kind_of?(Hash) ? EffectiveQbSync.layout[:admin_qb_tickets] : EffectiveQbSync.layout)
 
     def index
-      @datatable = Effective::Datatables::QbSyncs.new() if defined?(EffectiveDatatables)
+      @datatable = Effective::Datatables::QbSyncs.new()
       @page_title = 'Quickbooks Synchronizations'
     end
 

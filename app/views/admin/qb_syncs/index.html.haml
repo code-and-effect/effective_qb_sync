@@ -1,6 +1,6 @@
-%h2.effective-qb-sync-page-title= (@page_title || 'Quickbooks Synchronizations')
+%h1.effective-admin-heading= @page_title
 
-%p.text-right.effective-qb-sync-page-action
+%p.text-right.effective-admin-actions
   = link_to 'Quickbooks Setup Instructions', effective_qb_sync.instructions_admin_qb_syncs_path, class: 'btn btn-primary'
 
 %hr
@@ -15,10 +15,8 @@
 
 %hr
 
-- if @datatable.nil?
-  %p Please install #{link_to 'effective_datatables', 'https://github.com/code-and-effect/effective_datatables'} to see this page.
-- elsif @datatable.present?
-  = render_datatable @datatable
+- if @datatable.present?
+  = render_datatable(@datatable)
 - else
   %p There are no Quickbook Syncs present
 
