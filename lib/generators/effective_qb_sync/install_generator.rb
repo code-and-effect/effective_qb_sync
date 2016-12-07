@@ -37,6 +37,7 @@ module EffectiveQbSync
 
         migration_template ('../' * 3) + 'db/migrate/01_create_effective_qb_sync.rb.erb', 'db/migrate/create_effective_qb_sync.rb'
       end
+
     end
   end
 end

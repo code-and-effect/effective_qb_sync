@@ -34,9 +34,7 @@ module EffectiveQbSync
   end
 
   def self.permitted_params
-    [
-      :note
-    ]
+    [:note]
   end
 
 end

@@ -87,8 +87,6 @@ rake effective_qb_sync:overwrite_qb_item_names
 
 MIT License.  Copyright [Code and Effect Inc.](http://www.codeandeffect.com/)
 
-Code and Effect is the product arm of [AgileStyle](http://www.agilestyle.com/), an Edmonton-based shop that specializes in building custom web applications with Ruby on Rails.
-
 ## Testing
 
 Run tests by:
