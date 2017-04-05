@@ -12,12 +12,12 @@ module EffectiveQbSync
     # Ensure every acts_as_purchasable object responds to qb_item_name
     initializer 'effective_qb_sync.assert_qb_item_names_present' do |app|
       if Rails.env.development?
-        Rails.application.eager_load!
+        ActiveSupport.on_load :active_record do
+          invalids = (ActsAsPurchasable.descendants || []).reject { |klass| (klass.new().try(:qb_item_name).present? rescue false) }
 
-        invalids = (ActsAsPurchasable.descendants || []).reject { |klass| (klass.new().try(:qb_item_name).present? rescue false) }
-
-        if invalids.present?
-          puts "WARNING: (effective_qb_sync) expected acts_as_purchasable objects #{invalids.map(&:to_s).to_sentence} .qb_item_name() to be present."
+          if invalids.present?
+            puts "WARNING: (effective_qb_sync) expected acts_as_purchasable objects #{invalids.map(&:to_s).to_sentence} .qb_item_name() to be present."
+          end
         end
       end
     end
