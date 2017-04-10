@@ -11,10 +11,10 @@
     Click Company -> Set up Users and Passwords -> Set Up Users...
     - if EffectiveQbSync.quickbooks_username.present? && EffectiveQbSync.quickbooks_password.present?
       %li
-        Add a Quickbooks user with username
-        %strong= EffectiveQbSync.quickbooks_username
-        and password
-        %strong= EffectiveQbSync.quickbooks_password
+        Add a Quickbooks user with username:
+        %strong= Array(EffectiveQbSync.quickbooks_username).join('</strong> or <strong>').html_safe
+        and password:
+        %strong= Array(EffectiveQbSync.quickbooks_password).join('</strong> or <strong>').html_safe
     - else
       %li
         (developer) Add a quickbooks_username and quickbooks_password to the config/initializers/effective_qb_sync.rb file

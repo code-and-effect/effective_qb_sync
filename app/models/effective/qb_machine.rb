@@ -254,7 +254,7 @@ module Effective
 
     # determines if this username and password is valid
     def authentication_valid?(username,password)
-      (username == EffectiveQbSync.quickbooks_username) && (password == EffectiveQbSync.quickbooks_password)
+      Array(EffectiveQbSync.quickbooks_username).include?(username) && Array(EffectiveQbSync.quickbooks_password).include?(password)
     end
 
     # returns how much more work is to be done. If there is no more work to be done, it will return 0, else,
