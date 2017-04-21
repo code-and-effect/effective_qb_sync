@@ -3,7 +3,7 @@
    <AppID>{<%= SecureRandom.uuid.upcase %>}</AppID>
    <AppURL><%= effective_qb_sync.qb_sync_url(protocol: 'https') %></AppURL>
    <AppDescription><%= Rails.application.class.parent_name.upcase %> EffectiveOrders to Quickbooks Web Connector</AppDescription>
-   <AppSupport><%= effective_qb_sync.instructions_admin_qb_syncs_url(protocol: 'https') %></AppSupport>
+   <AppSupport>https://github.com/code-and-effect/effective_qb_sync</AppSupport>
    <UserName><%= EffectiveQbSync.quickbooks_username || 'MISSING' %></UserName>
    <OwnerID>{<%= SecureRandom.uuid.upcase %>}</OwnerID>
    <FileID>{<%= SecureRandom.uuid.upcase %>}</FileID>
