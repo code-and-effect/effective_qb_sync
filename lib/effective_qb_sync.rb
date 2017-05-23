@@ -1,4 +1,3 @@
-require 'haml-rails'
 require 'simple_form'
 require 'effective_orders'
 require 'effective_qb_sync/engine'
