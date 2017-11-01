@@ -29,8 +29,6 @@
 
   %p= f.button :submit, 'Save Quickbooks Item Names', data: { disable_with: 'Saving...' }
 
-
-
 %h3 Sync Log
 
 %table.table
@@ -43,10 +41,3 @@
       %tr
         %th= qb_log.created_at.strftime("%H:%M:%S").html_safe
         %td= qb_log.message
-
-
-
-
-
-
-
