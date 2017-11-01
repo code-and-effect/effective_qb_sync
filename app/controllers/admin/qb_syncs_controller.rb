@@ -6,7 +6,6 @@ module Admin
     layout (EffectiveQbSync.layout.kind_of?(Hash) ? EffectiveQbSync.layout[:admin_qb_tickets] : EffectiveQbSync.layout)
 
     def index
-
       if Gem::Version.new(EffectiveDatatables::VERSION) < Gem::Version.new('3.0')
         @datatable = Effective::Datatables::QbSyncs.new()
       else
@@ -60,7 +59,5 @@ module Admin
     def permitted_qb_order_items_params
       params.require(:effective_qb_order_items_form).permit(:id, qb_order_items_attributes: [:name, :id, :order_item_id])
     end
-
-
   end
 end
