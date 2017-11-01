@@ -1,7 +1,7 @@
 module Effective
   class QbSyncController < ApplicationController
     skip_authorization_check if defined?(CanCan)
-    skip_before_action :verify_authenticity_token
+    respond_to?(:skip_before_action) ? skip_before_action(:verify_authenticity_token) : skip_before_filter(:verify_authenticity_token)
 
     def api
       # respond successfully to a GET which some versions of the Web Connector send to verify the url

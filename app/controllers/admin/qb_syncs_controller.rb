@@ -1,7 +1,7 @@
 module Admin
   class QbSyncsController < ApplicationController
-    before_action(:authenticate_user!) # Devise
-    before_action(:restrict_access)
+    respond_to?(:before_action) ? before_action(:authenticate_user!) : before_filter(:authenticate_user!) # Devise
+    respond_to?(:before_action) ? before_action(:restrict_access) : before_filter(:restrict_access)
 
     layout (EffectiveQbSync.layout.kind_of?(Hash) ? EffectiveQbSync.layout[:admin_qb_tickets] : EffectiveQbSync.layout)
 
