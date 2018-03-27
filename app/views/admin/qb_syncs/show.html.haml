@@ -10,9 +10,9 @@
 %h3 Orders
 
 - if defined?(EffectiveBootstrap)
-  = render partial: 'form', qb_order_items_form: @qb_order_items_form
+  = render 'form', qb_order_items_form: @qb_order_items_form, qb_ticket: @qb_ticket
 - else
-  = render partial: 'simple_form', qb_order_items_form: @qb_order_items_form
+  = render 'simple_form', qb_order_items_form: @qb_order_items_form, qb_ticket: @qb_ticket
 
 %h3 Sync Log
 

@@ -1,4 +1,4 @@
-= simple_form_for qb_order_items_form, (EffectiveOrders.admin_simple_form_options || {}).merge(url: effective_qb_sync.admin_qb_sync_path(@qb_order_items_form)) do |f|
+= simple_form_for qb_order_items_form, (EffectiveOrders.admin_simple_form_options || {}).merge(url: effective_qb_sync.admin_qb_sync_path(qb_order_items_form)) do |f|
   %table.table
     %thead
       %tr
@@ -6,7 +6,7 @@
         %th Order Item
         %th Quickbooks Item Name
     %tbody
-      - @qb_ticket.orders.each do |order|
+      - qb_ticket.orders.each do |order|
         - order.order_items.each_with_index do |order_item, index|
           %tr
             %td= (link_to(('#' + order.to_param.to_s), effective_orders.admin_order_path(order)) if index == 0)

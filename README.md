@@ -61,6 +61,7 @@ For the admin screen, a logged in user is required (devise) and the user should 
 
 ```ruby
 can :admin, :effective_qb_sync
+can :manage, Effective::QbTicket
 ```
 
 Devise is a required dependency, but CanCan is not.  Please see the authorization_method in the initializer.
