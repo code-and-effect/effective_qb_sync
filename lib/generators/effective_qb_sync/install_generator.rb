@@ -25,7 +25,7 @@ module EffectiveQbSync
         if mailer_preview_path.present?
           template 'effective_qb_sync_mailer_preview.rb', File.join(mailer_preview_path, 'effective_qb_sync_mailer_preview.rb')
         else
-          puts "couldn't find action_mailer.preview_path.  Skipping effective_qb_sync_mailer_preview."
+          puts "couldn't find action_mailer.preview_path. Skipping effective_qb_sync_mailer_preview."
         end
       end
 

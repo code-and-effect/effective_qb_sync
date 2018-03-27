@@ -1,9 +1,6 @@
 %table.table
   %thead
     %th Quickbooks Item Name/Number
-    -#%th Website object
   %tbody
-    - ActsAsPurchasable.descendants.each do |klass|
-      %tr
-        %td= klass.new().try(:qb_item_name)
-        -#%td= klass.name
+    %tr
+      %td

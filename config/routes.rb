@@ -1,9 +1,5 @@
-Rails.application.routes.draw do
-  mount EffectiveQbSync::Engine => '/', as: 'effective_qb_sync'
-end
-
 EffectiveQbSync::Engine.routes.draw do
-  scope module: 'effective' do
+  scope :module => 'effective' do
     match 'quickbooks/api', to: 'qb_sync#api', as: 'qb_sync', via: :all
   end
 
@@ -13,4 +9,8 @@ EffectiveQbSync::Engine.routes.draw do
       get :qwc, on: :collection
     end
   end
+end
+
+Rails.application.routes.draw do
+  mount EffectiveQbSync::Engine => '/', as: 'effective_qb_sync'
 end

@@ -1,16 +1,12 @@
 module Admin
   class QbSyncsController < ApplicationController
-    respond_to?(:before_action) ? before_action(:authenticate_user!) : before_filter(:authenticate_user!) # Devise
-    respond_to?(:before_action) ? before_action(:restrict_access) : before_filter(:restrict_access)
+    before_action :authenticate_user!
+    before_action :restrict_access
 
     layout (EffectiveQbSync.layout.kind_of?(Hash) ? EffectiveQbSync.layout[:admin_qb_tickets] : EffectiveQbSync.layout)
 
     def index
-      if Gem::Version.new(EffectiveDatatables::VERSION) < Gem::Version.new('3.0')
-        @datatable = Effective::Datatables::QbSyncs.new()
-      else
-        @datatable = EffectiveQbSyncDatatable.new(self)
-      end
+      @datatable = EffectiveQbSyncDatatable.new(self)
 
       @page_title = 'Quickbooks Synchronizations'
     end
@@ -53,7 +49,7 @@ module Admin
     private
 
     def restrict_access
-      EffectiveQbSync.authorized?(self, :admin, :effective_qb_sync)
+      EffectiveQbSync.authorize!(self, :admin, :effective_qb_sync)
     end
 
     def permitted_qb_order_items_params
