@@ -46,6 +46,28 @@ module Admin
       render '/effective/qb_web_connector/quickbooks.qwc', layout: false
     end
 
+    def set_all_orders_finished
+      Effective::QbTicket.transaction do
+        begin
+          @qb_ticket = Effective::QbTicket.new(state: 'Finished')
+          @qb_ticket.qb_logs.build(message: 'Set all orders Finished')
+          @qb_ticket.save!
+
+          Effective::QbRequest.new_requests_for_unsynced_items.each do |qb_request|
+            qb_request.qb_ticket = @qb_ticket
+            qb_request.transition_to_finished
+          end
+
+          flash[:success] = 'Successfully set all orders finished'
+        rescue => e
+          flash[:danger] = "Unable to set all orders finished: #{e.message}"
+          raise ActiveRecord::Rollback
+        end
+      end
+
+      redirect_to effective_qb_sync.admin_qb_syncs_path
+    end
+
     private
 
     def restrict_access

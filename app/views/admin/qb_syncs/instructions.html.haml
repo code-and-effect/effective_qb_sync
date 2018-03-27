@@ -133,4 +133,15 @@
     %strong= EffectiveQbSync.error_email || EffectiveOrders.mailer[:admin_email]
     will receive an email with instructions on how to fix the error
 
+%h3 6. Troubleshooting
+
+%p
+  Don't actually use this, but click below to skip all unsynced orders.
+
+%ul
+  %li This action will create a finished QbTicket containing all orders.
+  %li All orders will be considered already synced, and will not be sent to QuickBooks again.
+  %li You might need a developer's help to undo this.
+  - unsynced = Effective::QbRequest.new_requests_for_unsynced_items.length
+  %li= link_to "Mark all #{unsynced} unsynced orders as already synchronized", effective_qb_sync.set_all_orders_finished_admin_qb_syncs_path, 'data-method': :post, 'data-confirm': 'Are you sure?'
 
