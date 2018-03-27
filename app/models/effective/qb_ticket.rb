@@ -7,26 +7,23 @@ module Effective
 
     STATES = ['Ready', 'Authenticated', 'Processing', 'Finished', 'ConnectionError', 'RequestError']
 
-    # structure do
-    #   username                  :string
-    #   company_file_name         :string
-    #   country                   :string
+    # Attributes
+    # username                  :string
+    # company_file_name         :string
+    # country                   :string
 
-    #   qbxml_major_version       :string
-    #   qbxml_minor_version       :string
+    # qbxml_major_version       :string
+    # qbxml_minor_version       :string
 
-    #   state                     :string, :default => 'Ready', :validates => [:presence, :inclusion => { :in => STATES}]
-    #   percent                   :integer, :default => 0
+    # state                     :string, default: 'Ready'
+    # percent                   :integer
 
-    #   hpc_response              :text
-    #   connection_error_hresult  :text
-    #   connection_error_message  :text
-    #   last_error                :text
+    # hpc_response              :text
+    # connection_error_hresult  :text
+    # connection_error_message  :text
+    # last_error                :text
 
-    #   site_id                   :integer    # ActsAsSiteSpecific
-
-    #   timestamps
-    # end
+    # timestamps
 
     validates :state, inclusion: { in: STATES }
 
@@ -42,7 +39,7 @@ module Effective
         to: EffectiveQbSync.error_email,
         subject: "Quickbooks failed to synchronize order ##{qb_request.try(:order).try(:to_param) || 'unknown'}",
         template: 'qb_sync_error'
-      ).try(:deliver_now).try(:deliver)
+      ).public_send(EffectiveOrders.mailer[:deliver_method])
 
       self.update_attributes!(atts.reverse_merge({last_error: error}))
     end
@@ -51,5 +48,6 @@ module Effective
     def log(message)
       qb_logs.create(message: message, qb_ticket: self)
     end
+
   end
 end

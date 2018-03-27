@@ -3,26 +3,23 @@ module Effective
     belongs_to :qb_ticket
     belongs_to :order
 
-    # NOTE: Anything that is 'raise' here finds its way to qb_ticket#error!
+    # NOTE: Anything that is 'raise' here finds its way to qb_ticket#error
 
     # these are the states that signal a request is finished
     COMPLETED_STATES = ['Finished', 'Error']
     PROCESSING_STATES = ['Processing', 'CustomerQuery', 'CreateCustomer', 'OrderSync']
 
-    # structure do
-    #   request_qbxml         :text
-    #   response_qbxml        :text
+    # Attributes
+    # request_qbxml         :text
+    # response_qbxml        :text
 
-    #   request_sent_at       :datetime
-    #   response_received_at  :datetime
+    # request_sent_at       :datetime
+    # response_received_at  :datetime
 
-    #   state                 :string, :validates => [:presence, :inclusion => { :in => COMPLETED_STATES + PROCESSING_STATES}]
-    #   error                 :text
+    # state                 :string
+    # error                 :text
 
-    #   site_id               :integer    # ActsAsSiteSpecific
-
-    #   timestamps
-    # end
+    # timestamps
 
     validates :state, inclusion: { in: COMPLETED_STATES + PROCESSING_STATES }
     validates :qb_ticket, presence: true
