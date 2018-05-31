@@ -45,4 +45,31 @@ module EffectiveQbSync
     [:note]
   end
 
+  def self.skip_order!(order)
+    raise 'expected an instance of Effective::Order' unless order.kind_of?(Effective::Order)
+
+    return true if Effective::QbRequest.where(state: 'Finished', order: order).first.present?
+
+    error = nil
+
+    Effective::QbTicket.transaction do
+      begin
+        qb_ticket = Effective::QbTicket.new(state: 'Finished')
+        qb_ticket.qb_logs.build(message: "#{order} set_qb_sync_finished")
+        qb_ticket.save!
+
+        qb_request = Effective::QbRequest.new(order: order)
+        qb_request.qb_ticket = qb_ticket
+        qb_request.transition_to_finished
+      rescue => e
+        error = e.message
+        raise ::ActiveRecord::Rollback
+      end
+    end
+
+    raise "Failed to skip quickbooks sync for #{order}: #{error}" if error
+
+    true
+  end
+
 end
