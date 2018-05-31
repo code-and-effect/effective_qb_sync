@@ -55,7 +55,7 @@ module EffectiveQbSync
     Effective::QbTicket.transaction do
       begin
         qb_ticket = Effective::QbTicket.new(state: 'Finished')
-        qb_ticket.qb_logs.build(message: "#{order} set_qb_sync_finished")
+        qb_ticket.qb_logs.build(message: "Skip Order: #{order} skipped")
         qb_ticket.save!
 
         qb_request = Effective::QbRequest.new(order: order)

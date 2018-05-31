@@ -13,7 +13,7 @@
             %td= order_item
             %td
               = f.fields_for :qb_order_items, order_item.qb_order_item do |foi|
-                = f.hidden_field :order_item_id, order_item.id
+                = foi.hidden_field :order_item_id, value: order_item.id
                 = foi.text_field :name, label: false, required: false
 
-  = effective_save(f, 'Save QuickBooks Item Names')
+  = f.submit 'Save QuickBooks Item Names'
