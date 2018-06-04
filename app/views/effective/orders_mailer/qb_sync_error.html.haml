@@ -19,7 +19,7 @@
         = @order.billing_name
         %br
         - @order.order_items.each do |oi|
-          = "#{oi.title} (#{oi.try(:qb_item_name)})"
+          = "#{oi.name} (#{oi.try(:qb_item_name)})"
           %br
 
     %p

@@ -216,7 +216,7 @@ module Effective
             order.order_items.each do |order_item|
               xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(order_item.qb_item_name) }
-                xml.Desc(order_item.title)
+                xml.Desc(order_item.name)
                 xml.Amount(qb_amount(order_item.subtotal))
               }
             end
