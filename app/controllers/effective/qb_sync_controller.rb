@@ -5,7 +5,7 @@ module Effective
 
     def api
       # respond successfully to a GET which some versions of the Web Connector send to verify the url
-      (render(nothing: true) and return) if request.get?
+      (render(body: '') and return) if request.get?
 
       # Examine raw post and determine which API call to process
       doc = Nokogiri::XML(request.raw_post)
