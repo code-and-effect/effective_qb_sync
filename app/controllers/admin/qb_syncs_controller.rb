@@ -1,13 +1,16 @@
 module Admin
   class QbSyncsController < ApplicationController
-    before_action :authenticate_user!
-    before_action :restrict_access
+    before_action(:authenticate_user!) if defined?(Devise)
+    before_action { EffectiveResources.authorize!(self, :admin, :effective_qb_sync) }
 
-    layout (EffectiveQbSync.layout.kind_of?(Hash) ? EffectiveQbSync.layout[:admin_qb_tickets] : EffectiveQbSync.layout)
+    include Effective::CrudController
+
+    if (config = EffectiveQbSync.layout)
+      layout(config.kind_of?(Hash) ? config[:admin] : config)
+    end
 
     def index
       @datatable = EffectiveQbSyncDatatable.new(self)
-
       @page_title = 'Quickbooks Synchronizations'
     end
 
@@ -23,7 +26,7 @@ module Admin
       @page_title = "Quickbooks Sync ##{@qb_ticket.id}"
 
       @qb_order_items_form = Effective::QbOrderItemsForm.new(id: @qb_ticket.id, orders: @qb_ticket.orders)
-      @qb_order_items_form.qb_order_items_attributes = permitted_qb_order_items_params[:qb_order_items_attributes].values
+      @qb_order_items_form.qb_order_items_attributes = permitted_params[:qb_order_items_attributes].values
 
       if @qb_order_items_form.save
         flash[:success] = 'Successfully updated Quickbooks item names'
@@ -39,7 +42,7 @@ module Admin
     end
 
     def qwc
-      @filename = Rails.application.class.parent_name.downcase + '.qwc'
+      @filename = EffectiveQbSync.qwc_name.parameterize + '.qwc'
 
       response.headers['Content-Disposition'] = "attachment; filename=\"#{@filename}\""
 
@@ -70,12 +73,11 @@ module Admin
 
     private
 
-    def restrict_access
-      EffectiveQbSync.authorize!(self, :admin, :effective_qb_sync)
+    def permitted_params
+      params.require(:effective_qb_order_items_form).permit(
+        :id, qb_order_items_attributes: [:name, :id, :order_item_id]
+      )
     end
 
-    def permitted_qb_order_items_params
-      params.require(:effective_qb_order_items_form).permit(:id, qb_order_items_attributes: [:name, :id, :order_item_id])
-    end
   end
 end

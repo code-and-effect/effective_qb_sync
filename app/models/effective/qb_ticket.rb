@@ -7,23 +7,26 @@ module Effective
 
     STATES = ['Ready', 'Authenticated', 'Processing', 'Finished', 'ConnectionError', 'RequestError']
 
-    # Attributes
-    # username                  :string
-    # company_file_name         :string
-    # country                   :string
+    effective_resource do
+      username                  :string
+      company_file_name         :string
+      country                   :string
 
-    # qbxml_major_version       :string
-    # qbxml_minor_version       :string
+      qbxml_major_version       :string
+      qbxml_minor_version       :string
 
-    # state                     :string, default: 'Ready'
-    # percent                   :integer
+      state                     :string, default: 'Ready'
+      percent                   :integer
 
-    # hpc_response              :text
-    # connection_error_hresult  :text
-    # connection_error_message  :text
-    # last_error                :text
+      hpc_response              :text
+      connection_error_hresult  :text
+      connection_error_message  :text
+      last_error                :text
 
-    # timestamps
+      timestamps
+    end
+
+    scope :deep, -> { includes(qb_requests: :order) }
 
     validates :state, inclusion: { in: STATES }
 

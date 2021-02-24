@@ -9,17 +9,20 @@ module Effective
     COMPLETED_STATES = ['Finished', 'Error']
     PROCESSING_STATES = ['Processing', 'CustomerQuery', 'CreateCustomer', 'OrderSync']
 
-    # Attributes
-    # request_qbxml         :text
-    # response_qbxml        :text
+    effective_resource do
+      state                 :string
+      error                 :text
 
-    # request_sent_at       :datetime
-    # response_received_at  :datetime
+      request_type          :string
 
-    # state                 :string
-    # error                 :text
+      request_qbxml         :text
+      response_qbxml        :text
 
-    # timestamps
+      request_sent_at       :datetime
+      response_received_at  :datetime
+
+      timestamps
+    end
 
     validates :state, inclusion: { in: COMPLETED_STATES + PROCESSING_STATES }
     validates :qb_ticket, presence: true

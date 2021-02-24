@@ -5,36 +5,10 @@ EffectiveQbSync.setup do |config|
   config.qb_logs_table_name = :qb_logs
   config.qb_order_items_table_name = :qb_order_items
 
-  # Authorization Method
-  #
-  # This method is called by all controller actions with the appropriate action and resource
-  # If the method returns false, an Effective::AccessDenied Error will be raised (see README.md for complete info)
-  #
-  # Use via Proc (and with CanCan):
-  # config.authorization_method = Proc.new { |controller, action, resource| authorize!(action, resource) }
-  #
-  # Use via custom method:
-  # config.authorization_method = :my_authorization_method
-  #
-  # And then in your application_controller.rb:
-  #
-  # def my_authorization_method(action, resource)
-  #   current_user.is?(:admin)
-  # end
-  #
-  # Or disable the check completely:
-  # config.authorization_method = false
-  config.authorization_method = Proc.new { |controller, action, resource| authorize!(action, resource) } # CanCanCan
-
-  # All EffectiveQbSync controllers will use this layout
-  config.layout = 'application'
-
-  # SimpleForm Options
-  # This Hash of options will be passed into any admin facing simple_form_for() calls
-  config.admin_simple_form_options = {} # For the /admin/qb_syncs form
+  # Layout Settings
+  # config.layout = { admin: 'admin' }
 
   # Quickbooks Company File Settings
-
   # The username / password of the Quickbooks user that should be allowed to synchronize.
   # This must match the user configured in the Quickbooks .qwc file
   config.quickbooks_username = ''

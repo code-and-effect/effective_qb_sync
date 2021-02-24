@@ -3,7 +3,7 @@ class EffectiveQbSyncDatatable < Effective::Datatable
     order :created_at, :desc
 
     col :created_at
-    col :state, search: { collection: Effective::QbTicket::STATES }
+    col :state
 
     val :num_orders, visible: false do |qb_ticket|
       qb_ticket.qb_requests.length
@@ -24,11 +24,14 @@ class EffectiveQbSyncDatatable < Effective::Datatable
       end
     end
 
-    actions_col partial: 'admin/qb_syncs/actions', partial_as: :qb_sync
+    actions_col do |qb_ticket|
+      dropdown_link_to 'Show', effective_qb_sync.admin_qb_sync_path(qb_ticket)
+    end
+
   end
 
   collection do
-    Effective::QbTicket.includes(qb_requests: :order)
+    Effective::QbTicket.deep.all
   end
 
 end

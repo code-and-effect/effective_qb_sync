@@ -8,11 +8,7 @@
         %td= value
 
 %h3 Orders
-
-- if defined?(EffectiveBootstrap)
-  = render 'form', qb_order_items_form: @qb_order_items_form, qb_ticket: @qb_ticket
-- else
-  = render 'simple_form', qb_order_items_form: @qb_order_items_form, qb_ticket: @qb_ticket
+= render 'form', qb_order_items_form: @qb_order_items_form, qb_ticket: @qb_ticket
 
 %h3 Sync Log
 
