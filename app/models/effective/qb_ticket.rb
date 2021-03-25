@@ -1,6 +1,6 @@
 module Effective
   class QbTicket < ActiveRecord::Base
-    belongs_to :qb_request # the current request
+    belongs_to :qb_request, optional: true # the current request. Only optional when set_all_orders_finished
     has_many :qb_requests
     has_many :orders, through: :qb_requests
     has_many :qb_logs
@@ -15,7 +15,7 @@ module Effective
       qbxml_major_version       :string
       qbxml_minor_version       :string
 
-      state                     :string, default: 'Ready'
+      state                     :string   # , default: 'Ready'
       percent                   :integer
 
       hpc_response              :text
@@ -31,7 +31,7 @@ module Effective
     validates :state, inclusion: { in: STATES }
 
     def request_error!(error, atts={})
-      self.error!(error, atts.reverse_merge({state: 'RequestError'}))
+      self.error!(error, atts.reverse_merge(state: 'RequestError'))
     end
 
     # This is the entry point for a standard error.
@@ -44,7 +44,7 @@ module Effective
         template: 'qb_sync_error'
       ).public_send(EffectiveOrders.mailer[:deliver_method])
 
-      self.update_attributes!(atts.reverse_merge({last_error: error}))
+      update!(atts.reverse_merge(last_error: error))
     end
 
     # persists a new log message to this ticket

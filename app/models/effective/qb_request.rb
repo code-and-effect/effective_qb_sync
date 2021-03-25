@@ -63,7 +63,7 @@ module Effective
     # parses the response XML and processes it.
     # returns true if the  responseXML indicates success, false otherwise
     def consume_response_xml(xml)
-      update_attributes!(response_qbxml: xml)
+      update!(response_qbxml: xml)
       handle_response_xml(xml)
     end
 
@@ -116,7 +116,7 @@ module Effective
     # transitions the request state and also outputs a log statement
     def transition_state(state)
       old_state = self.state
-      update_attributes!(state: state)
+      update!(state: state)
       log "Transitioned request state from [#{old_state}] to [#{state}]"
     end
 

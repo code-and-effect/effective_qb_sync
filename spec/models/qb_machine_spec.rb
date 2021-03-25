@@ -209,7 +209,7 @@ describe Effective::QbMachine, "Sending Request qbXML to QuickBooks (op_send_req
   end
 
   it "should transition ticket to the RequestError state if the ticket is not in the Authenticated or Processing states" do
-    @qb_machine.ticket.update_attributes!(state: 'Finished')
+    @qb_machine.ticket.update!(state: 'Finished')
     @qb_machine.op_send_request_xml(@default_request_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
@@ -314,25 +314,25 @@ describe Effective::QbMachine, "Receiving response qbXML from QuickBooks (op_rec
   end
 
   it "should return -1 to indicate error if the ticket state is not in the Processing state" do
-    @qb_machine.ticket.update_attributes! :state=>'Finished'
+    @qb_machine.ticket.update! :state=>'Finished'
     result = @qb_machine.op_receive_response_xml(@default_response_params)
     result.should eql(-1)
   end
 
   it "should set the ticket state to RequestError if the ticket state was previously Authenticated" do
-    @qb_machine.ticket.update_attributes! :state=>'Authenticated'
+    @qb_machine.ticket.update! :state=>'Authenticated'
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
 
   it "should set the ticket state to RequestError if the ticket state was previously Ready" do
-    @qb_machine.ticket.update_attributes! :state=>'Ready'
+    @qb_machine.ticket.update! :state=>'Ready'
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
 
   it "should set the ticket state to RequestError if the ticket state was previously Finished" do
-    @qb_machine.ticket.update_attributes! :state=>'Finished'
+    @qb_machine.ticket.update! :state=>'Finished'
     @qb_machine.op_receive_response_xml(@default_response_params)
     @qb_machine.ticket.state.should eql('RequestError')
   end
@@ -487,7 +487,7 @@ describe Effective::QbMachine, "Receiving a request from the QBWC to provide the
   before :each do
     @qb_machine = Effective::QbMachine.new
     @last_error = 'What?'
-    @qb_machine.ticket.update_attributes! :last_error=>@last_error
+    @qb_machine.ticket.update! :last_error=>@last_error
   end
 
   it "should return the last error" do
@@ -495,11 +495,11 @@ describe Effective::QbMachine, "Receiving a request from the QBWC to provide the
   end
 
   it "should return '' if the last error is blank" do
-    @qb_machine.ticket.update_attributes! :last_error=>nil
+    @qb_machine.ticket.update! :last_error=>nil
     error = @qb_machine.op_last_error
     error.should eql('')
 
-    @qb_machine.ticket.update_attributes! :last_error=>''
+    @qb_machine.ticket.update! :last_error=>''
     error = @qb_machine.op_last_error
     error.should eql('')
   end
@@ -513,42 +513,40 @@ describe Effective::QbMachine, "Closing the connection (op_close_connection)" do
   end
 
   it "should not transition ticket state on close_connection if state is Finished" do
-    @qb_machine.ticket.update_attributes! :state=>'Finished'
+    @qb_machine.ticket.update! :state=>'Finished'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('Finished')
   end
 
   it "should not transition ticket state on close_connection if state is ConnectionError" do
-    @qb_machine.ticket.update_attributes! :state=>'ConnectionError'
+    @qb_machine.ticket.update! :state=>'ConnectionError'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('ConnectionError')
   end
 
   it "should not transition ticket state on close_connection if state is RequestError" do
-    @qb_machine.ticket.update_attributes! :state=>'RequestError'
+    @qb_machine.ticket.update! :state=>'RequestError'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('RequestError')
   end
 
   it "should transition ticket state to Finished if state is Ready " do
-    @qb_machine.ticket.update_attributes! :state=>'Ready'
+    @qb_machine.ticket.update! :state=>'Ready'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('Finished')
   end
 
   it "should transition ticket state to Finished if state is Authenticated" do
-    @qb_machine.ticket.update_attributes! :state=>'Authenticated'
+    @qb_machine.ticket.update! :state=>'Authenticated'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('Finished')
   end
 
   it "should transition ticket state to Finished if state is Processing" do
-    @qb_machine.ticket.update_attributes! :state=>'Processing'
+    @qb_machine.ticket.update! :state=>'Processing'
     @qb_machine.op_close_connection
     @qb_machine.ticket.state.should eql('Finished')
   end
 
 
 end
-
-

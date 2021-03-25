@@ -27,17 +27,17 @@ module Effective
 
       unless authentication_valid?(username, password)
         log "Authentication failed for user #{username}"
-        @ticket.update_attributes!(username: username, state: 'Finished', last_error: @last_log_message)
+        @ticket.update!(username: username, state: 'Finished', last_error: @last_log_message)
         return 'nvu' # not valid user
       end
 
       if has_work?
         log "Authentication successful. Reporting to QuickBooks that there is work to be done."
-        @ticket.update_attributes!(username: username, state: 'Authenticated')
+        @ticket.update!(username: username, state: 'Authenticated')
         ''  # "Any other string value = use this name for company file"
       else
         log "Authentication successful, but there is no work to be done"
-        @ticket.update_attributes!(username: username, state: 'Finished')
+        @ticket.update!(username: username, state: 'Finished')
         'none'
       end
     end
@@ -58,7 +58,7 @@ module Effective
       return '' unless valid?
 
       # update the ticket with the metadata sent at the first request for XML (i.e. if not blank)
-      @ticket.update_attributes!(
+      @ticket.update!(
         hpc_response: (@ticket.hpc_response || params[:hcpresponse]),
         company_file_name: (@ticket.company_file_name || params[:company]),
         country: (@ticket.country || params[:country]),
@@ -82,13 +82,13 @@ module Effective
       # if we don't have a request, then we are done.
       unless request
         log "There is no more work to be done. Marking ticket state as finished"
-        @ticket.update_attributes!(state: 'Finished')
+        @ticket.update!(state: 'Finished')
         return ''
       end
 
-      request.update_attributes!(qb_ticket: @ticket, request_sent_at: Time.zone.now)
+      request.update!(qb_ticket: @ticket, request_sent_at: Time.zone.now)
       qb_xml = request.to_qb_xml
-      request.update_attributes!(request_qbxml: qb_xml)
+      request.update!(request_qbxml: qb_xml)
 
       # set the ticket into a Processing state
       @ticket.state = 'Processing'
@@ -134,7 +134,7 @@ module Effective
 
         # also update the request if it is able to be found
         request = find_outstanding_request(responseXML)
-        request.update_attributes!(response_qbxml: responseXML, state: 'Error') if request
+        request.update!(response_qbxml: responseXML, state: 'Error') if request
 
         return -1
       end
@@ -161,12 +161,12 @@ module Effective
       unless request.consume_response_xml(responseXML)
         # this request for some reason did not succeeed. Update the request and the ticket
         log "Request [#{request.state}] could not process the QuickBooks response: #{request.error}"
-        request.update_attributes!(response_qbxml: responseXML, state: 'Error')
+        request.update!(response_qbxml: responseXML, state: 'Error')
         @ticket.error! @last_log_message
         return -1
       end
 
-      request.update_attributes!(response_qbxml: responseXML) # This was changed for effective_qb_sync
+      request.update!(response_qbxml: responseXML) # This was changed for effective_qb_sync
 
       # the request has processed the response XML. if it does not have any more work to do, then detach it
 
@@ -174,7 +174,7 @@ module Effective
         log "Request [#{request.state}] has more work to do on the next request"
       else
         # detach the current request
-        @ticket.update_attributes!(qb_request: nil)
+        @ticket.update!(qb_request: nil)
         log "Request [#{request.state}] has completed its work"
       end
 
@@ -214,7 +214,7 @@ module Effective
     def op_close_connection
       return 'Close error: invalid ticket' unless valid?
 
-      @ticket.update_attributes!(state: 'Finished') unless ['ConnectionError', 'RequestError'].include?(@ticket.state)
+      @ticket.update!(state: 'Finished') unless ['ConnectionError', 'RequestError'].include?(@ticket.state)
       log "Closed connection with QuickBooks"
 
       'OK'
