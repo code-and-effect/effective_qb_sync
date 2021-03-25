@@ -253,8 +253,13 @@ module Effective
     protected
 
     # determines if this username and password is valid
+    # username is optional depending on your config file
     def authentication_valid?(username,password)
-      Array(EffectiveQbSync.quickbooks_username).include?(username) && Array(EffectiveQbSync.quickbooks_password).include?(password)
+      if EffectiveQbSync.quickbooks_username.present?
+        return false unless Array(EffectiveQbSync.quickbooks_username).include?(username)
+      end
+
+      Array(EffectiveQbSync.quickbooks_password).include?(password)
     end
 
     # returns how much more work is to be done. If there is no more work to be done, it will return 0, else,
