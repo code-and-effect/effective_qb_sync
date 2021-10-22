@@ -42,7 +42,7 @@ module Effective
         to: EffectiveQbSync.error_email,
         subject: "Quickbooks failed to synchronize order ##{qb_request.try(:order).try(:to_param) || 'unknown'}",
         template: 'qb_sync_error'
-      ).public_send(EffectiveOrders.mailer[:deliver_method])
+      ).deliver_now
 
       update!(atts.reverse_merge(last_error: error))
     end
