@@ -30,6 +30,19 @@ module Effective
 
     validates :state, inclusion: { in: STATES }
 
+    def self.set_all_orders_finished!(before: nil)
+      qb_ticket = Effective::QbTicket.new(state: 'Finished')
+      qb_ticket.qb_logs.build(message: 'Set all orders Finished')
+      qb_ticket.save!
+
+      Effective::QbRequest.new_requests_for_unsynced_items(before: before).each do |qb_request|
+        qb_request.qb_ticket = qb_ticket
+        qb_request.transition_to_finished
+      end
+
+      true
+    end
+
     def request_error!(error, atts={})
       self.error!(error, atts.reverse_merge(state: 'RequestError'))
     end

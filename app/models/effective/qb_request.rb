@@ -30,10 +30,16 @@ module Effective
 
     # creates (does not persist) QbRequests for outstanding orders.  The caller may choose to
     # persist a request when that request starts communicating with QuickBooks
-    def self.new_requests_for_unsynced_items
+    def self.new_requests_for_unsynced_items(before: nil)
       finished_order_ids = Effective::QbRequest.where(state: 'Finished').pluck(:order_id)
-      Effective::Order.purchased.includes(order_items: [:purchasable, :qb_order_item])
-        .where.not(id: finished_order_ids).map { |order| Effective::QbRequest.new(order: order) }
+      finished_orders = Effective::Order.purchased.includes(order_items: [:purchasable, :qb_order_item]).where.not(id: finished_order_ids)
+
+      if before.present?
+        raise('expected before to be a date') unless before.respond_to?(:strftime)
+        finished_orders = finished_orders.where('purchased_at < ?', before)
+      end
+
+      finished_orders.map { |order| Effective::QbRequest.new(order: order) }
     end
 
     # Finds a QbRequest using response qb_xml.  If the response could not be parsed, or if there was no

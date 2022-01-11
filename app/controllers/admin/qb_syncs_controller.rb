@@ -52,14 +52,7 @@ module Admin
     def set_all_orders_finished
       Effective::QbTicket.transaction do
         begin
-          @qb_ticket = Effective::QbTicket.new(state: 'Finished')
-          @qb_ticket.qb_logs.build(message: 'Set all orders Finished')
-          @qb_ticket.save!
-
-          Effective::QbRequest.new_requests_for_unsynced_items.each do |qb_request|
-            qb_request.qb_ticket = @qb_ticket
-            qb_request.transition_to_finished
-          end
+          Effective::QbTicket.set_all_orders_finished!
 
           flash[:success] = 'Successfully set all orders finished'
         rescue => e
