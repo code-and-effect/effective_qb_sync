@@ -15,11 +15,16 @@
         %strong= Array(EffectiveQbSync.quickbooks_username).join('</strong> or <strong>').html_safe
         and password:
         %strong= Array(EffectiveQbSync.quickbooks_password).join('</strong> or <strong>').html_safe
+    - elsif EffectiveQbSync.quickbooks_username.blank? && EffectiveQbSync.quickbooks_password.present?
+      %li
+        Add a Quickbooks user any username, and password:
+        %strong= Array(EffectiveQbSync.quickbooks_password).join('</strong> or <strong>').html_safe
     - else
       %li
         (developer) Add a quickbooks_username and quickbooks_password to the config/initializers/effective_qb_sync.rb file
         %ul
           %li Add a Quickbooks user with that same username and password
+
     %li Access for user: "Selected areas of Quickbooks"
     %li Sales and Accounts Receivable "Selective Access - Create transactions only"
     %li Purchases and Accounts Payable "No Access"
