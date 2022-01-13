@@ -52,7 +52,7 @@ module Admin
     def set_all_orders_finished
       Effective::QbTicket.transaction do
         begin
-          Effective::QbTicket.set_all_orders_finished!
+          Effective::QbTicket.set_orders_finished!
 
           flash[:success] = 'Successfully set all orders finished'
         rescue => e
