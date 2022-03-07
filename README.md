@@ -1,6 +1,6 @@
 # Effective Quickbooks Sync
 
-Synchronize [effective_orders](https://github.com/code-and-effect/effective_orders) with [Quickbooks Web Connector](https://developer.intuit.com/docs/quickbooks_web_connector).
+Synchronize [effective_orders](https://github.com/code-and-effect/effective_orders) with [Quickbooks Web Connector](https://developer.intuit.com/docs/quickbooks_web_connector). This is an unofficial integration that is not supported or affiliated with Intuit in any way.
 
 ## Getting Started
 
