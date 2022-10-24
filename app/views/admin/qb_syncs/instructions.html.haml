@@ -98,7 +98,7 @@
 
 %ul
   %li
-    Download the #{link_to 'quickbooks web connector .qwc file', (effective_qb_sync.qwc_admin_qb_syncs_path)} and put it somewhere safe
+    Download the #{link_to 'quickbooks web connector .qwc file', (effective_qb_sync.qwc_admin_qb_syncs_path), target: '_blank'} and put it somewhere safe
   %li
     Open the Quickbooks Web Connector program from the Start menu
     %ul
@@ -117,7 +117,7 @@
             url that ends with
             %strong= effective_qb_sync.qb_sync_path
             such as
-            %strong https://myapp.herokuapp.com#{effective_qb_sync.qb_sync_path}
+            %strong https://mysite.com#{effective_qb_sync.qb_sync_path}
           %li The AppSupport url doesn't matter
           %li The UserName must be present and match an existing user
           %li The OwnerID and FileID values must also be unique between all other .qwc files
@@ -135,7 +135,7 @@
   %li (optional) or enable Auto-Run
   %li
     If any synchronization errors occur,
-    %strong= EffectiveQbSync.error_email || EffectiveOrders.mailer[:admin_email]
+    %strong= EffectiveQbSync.error_email || EffectiveOrders.mailer_admin
     will receive an email with instructions on how to fix the error
 
 %h3 6. Troubleshooting
@@ -149,4 +149,3 @@
   %li You might need a developer's help to undo this.
   - unsynced = Effective::QbRequest.new_requests_for_unsynced_items.length
   %li= link_to "Mark all #{unsynced} unsynced orders as already synchronized", effective_qb_sync.set_all_orders_finished_admin_qb_syncs_path, 'data-method': :post, 'data-confirm': 'Are you sure?'
-

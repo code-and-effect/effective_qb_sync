@@ -44,9 +44,9 @@ module Admin
     def qwc
       @filename = EffectiveQbSync.qwc_name.parameterize + '.qwc'
 
-      response.headers['Content-Disposition'] = "attachment; filename=\"#{@filename}\""
+      data = render_to_string('effective/qb_web_connector/quickbooks', layout: false)
 
-      render '/effective/qb_web_connector/quickbooks.qwc', layout: false
+      send_data(data, filename: 'quickbooks.qwc', disposition: 'attachment')
     end
 
     def set_all_orders_finished
@@ -67,9 +67,7 @@ module Admin
     private
 
     def permitted_params
-      params.require(:effective_qb_order_items_form).permit(
-        :id, qb_order_items_attributes: [:name, :id, :order_item_id]
-      )
+      params.require(:effective_qb_order_items_form).permit!
     end
 
   end
