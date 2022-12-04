@@ -234,11 +234,19 @@ module Effective
               }
             end
 
-            if EffectiveQbSync.quickbooks_tax_name.present?
+            if (name = EffectiveQbSync.quickbooks_tax_name).present?
               xml.SalesReceiptLineAdd {
-                xml.ItemRef { xml.FullName(EffectiveQbSync.quickbooks_tax_name) }
-                xml.Desc(EffectiveQbSync.quickbooks_tax_name)
+                xml.ItemRef { xml.FullName(name) }
+                xml.Desc(name)
                 xml.Amount(qb_amount(order.tax))
+              }
+            end
+
+            if (name = EffectiveOrders.try(:credit_card_surcharge_qb_item_name)).present?
+              xml.SalesReceiptLineAdd {
+                xml.ItemRef { xml.FullName(name) }
+                xml.Desc(name)
+                xml.Amount(qb_amount(order.surcharge))
               }
             end
           }
