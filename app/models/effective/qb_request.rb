@@ -251,7 +251,7 @@ module Effective
               xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(tax_name) }
                 xml.Desc(tax_name)
-                xml.Amount(qb_amount(order.tax + order.surcharge_tax))
+                xml.Amount(qb_amount(order.tax + order.try(:surcharge_tax).to_i))
               }
             end
           }
