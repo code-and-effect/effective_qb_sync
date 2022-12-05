@@ -247,7 +247,7 @@ module Effective
 
             # This is manual tax mode. Add the Tax and Surcharge Tax as an item.
             # When tax name is blank, this is handled automatically by QuickBooks
-            if tax_name.present? && (order.tax != 0 || order.surcharge_tax != 0)
+            if tax_name.present? && (order.tax != 0 || order.try(:surcharge_tax).to_i != 0)
               xml.SalesReceiptLineAdd {
                 xml.ItemRef { xml.FullName(tax_name) }
                 xml.Desc(tax_name)
