@@ -1,3 +1,3 @@
 module EffectiveQbSync
-  VERSION = '1.3.8'.freeze
+  VERSION = '1.4.0'.freeze
 end
