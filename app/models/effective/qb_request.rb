@@ -234,11 +234,24 @@ module Effective
               }
             end
 
-            if EffectiveQbSync.quickbooks_tax_name.present?
+            surcharge_name = EffectiveOrders.try(:credit_card_surcharge_qb_item_name)
+            tax_name = EffectiveQbSync.quickbooks_tax_name
+
+            if surcharge_name.present? && order.surcharge != 0
               xml.SalesReceiptLineAdd {
-                xml.ItemRef { xml.FullName(EffectiveQbSync.quickbooks_tax_name) }
-                xml.Desc(EffectiveQbSync.quickbooks_tax_name)
-                xml.Amount(qb_amount(order.tax))
+                xml.ItemRef { xml.FullName(surcharge_name) }
+                xml.Desc(surcharge_name)
+                xml.Amount(qb_amount(order.surcharge))
+              }
+            end
+
+            # This is manual tax mode. Add the Tax and Surcharge Tax as an item.
+            # When tax name is blank, this is handled automatically by QuickBooks
+            if tax_name.present? && (order.tax != 0 || order.try(:surcharge_tax).to_i != 0)
+              xml.SalesReceiptLineAdd {
+                xml.ItemRef { xml.FullName(tax_name) }
+                xml.Desc(tax_name)
+                xml.Amount(qb_amount(order.tax + order.try(:surcharge_tax).to_i))
               }
             end
           }
