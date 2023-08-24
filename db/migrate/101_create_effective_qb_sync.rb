@@ -1,6 +1,6 @@
-class CreateEffectiveQbSync < ActiveRecord::Migration[4.2]
-  def self.up
-    create_table <%= @qb_requests_table_name %> do |t|
+class CreateEffectiveQbSync < ActiveRecord::Migration[6.0]
+  def change
+    create_table :qb_requests do |t|
       t.integer   :order_id
       t.integer   :qb_ticket_id
 
@@ -16,9 +16,9 @@ class CreateEffectiveQbSync < ActiveRecord::Migration[4.2]
 
       t.timestamps
     end
-    add_index <%= @qb_requests_table_name %>, :order_id
+    add_index :qb_requests, :order_id
 
-    create_table <%= @qb_tickets_table_name %> do |t|
+    create_table :qb_tickets do |t|
       t.integer   :qb_request_id
 
       t.string    :username
@@ -37,32 +37,23 @@ class CreateEffectiveQbSync < ActiveRecord::Migration[4.2]
 
       t.timestamps
     end
-    add_index <%= @qb_tickets_table_name %>, :qb_request_id
+    add_index :qb_tickets, :qb_request_id
 
-    create_table <%= @qb_logs_table_name %> do |t|
+    create_table :qb_logs do |t|
       t.integer   :qb_ticket_id
-
       t.text      :message
 
       t.timestamps
     end
-    add_index <%= @qb_logs_table_name %>, :qb_ticket_id
+    add_index :qb_logs, :qb_ticket_id
 
-    create_table <%= @qb_order_items_table_name %> do |t|
+    create_table :qb_order_items do |t|
       t.integer    :order_item_id
-
       t.string     :name
 
       t.timestamps
     end
-    add_index <%= @qb_order_items_table_name %>, :order_item_id
+    add_index :qb_order_items, :order_item_id
 
-  end
-
-  def self.down
-    drop_table <%= @qb_requests_table_name %>
-    drop_table <%= @qb_tickets_table_name %>
-    drop_table <%= @qb_logs_table_name %>
-    drop_table <%= @qb_order_items_table_name %>
   end
 end

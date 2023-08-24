@@ -1,10 +1,4 @@
 EffectiveQbSync.setup do |config|
-  # Configure Database Tables
-  config.qb_requests_table_name = :qb_requests
-  config.qb_tickets_table_name = :qb_tickets
-  config.qb_logs_table_name = :qb_logs
-  config.qb_order_items_table_name = :qb_order_items
-
   # Layout Settings
   # config.layout = { admin: 'admin' }
 
